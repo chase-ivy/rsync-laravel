@@ -29,6 +29,17 @@ abstract class TestCase extends BaseTestCase
             );
         }
 
-        return $app;
+                return $app;
+    }
+
+    /**
+     * Pages load their CSS/JS with @vite(...). Tests only check the HTML, so they don't
+     * need "npm run build" — this tells Laravel not to look for the built files.
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutVite();
     }
 }

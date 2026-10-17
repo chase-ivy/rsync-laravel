@@ -1,0 +1,83 @@
+/*
+ * RSYNC sign-in pages (login, registration, forgot password).
+ * Copied from the <style> blocks of login.php, registration.php and forgot_password.php.
+ * Shared rules first; the few page-specific differences are at the bottom.
+ */
+:root{--ink:#0a0a0f;--ink2:#3d3d4a;--ink3:#8e8ea0;--bg:#f4f3ef;--amber:#e8a020;--border:rgba(0,0,0,.09);--r:12px;}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;display:flex;}
+
+/* Left photo panel */
+.left{flex:1;position:relative;background:center/cover no-repeat;}
+.left::after{content:'';position:absolute;inset:0;background:rgba(10,10,15,.52);}
+.left-copy{position:absolute;bottom:52px;left:52px;z-index:2;color:#fff;max-width:380px;}
+.left-copy .logo{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;letter-spacing:3px;margin-bottom:18px;}
+.left-copy .logo span{color:var(--amber);}
+.left-copy h2{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;line-height:1.15;margin-bottom:10px;}
+.left-copy p{font-size:14px;opacity:.7;line-height:1.6;}
+
+/* Right side with the white card */
+.right{flex:1;display:flex;justify-content:center;align-items:center;padding:32px 20px;}
+.box{width:100%;max-width:380px;background:#fff;border:1px solid var(--border);border-radius:18px;padding:38px;box-shadow:0 8px 32px rgba(0,0,0,.07);animation:up .5s both;}
+@keyframes up{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.box-logo{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;letter-spacing:3px;color:var(--ink);margin-bottom:22px;}
+.box-logo span{color:var(--amber);}
+.box h2{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-bottom:4px;}
+.box .sub{font-size:13px;color:var(--ink3);margin-bottom:26px;}
+
+/* Form fields */
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;}
+.field .inp-wrap{position:relative;}
+.field input,.field select{width:100%;padding:11px 38px 11px 13px;border:1.5px solid var(--border);border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:.18s;background:#fafaf8;}
+.field select{appearance:none;}
+.field input:focus,.field select:focus{border-color:var(--amber);background:#fff;box-shadow:0 0 0 3px rgba(232,160,32,.13);}
+.field i{position:absolute;right:11px;top:50%;transform:translateY(-50%);font-size:17px;color:var(--ink3);cursor:pointer;}
+.plan-chip{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:var(--r);background:#fff;color:var(--ink2);font-size:14px;}
+
+/* Links and buttons */
+.forgot{text-align:right;margin-top:-8px;margin-bottom:18px;}
+.forgot a{font-size:12px;color:var(--amber);font-weight:500;}
+.forgot a:hover{text-decoration:underline;}
+.btn-main{width:100%;padding:12px;border:none;border-radius:var(--r);background:var(--ink);color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:.18s;margin-top:4px;}
+.btn-main:hover{background:#1e1e2e;}
+.btn-back{display:block;width:100%;margin-top:10px;padding:11px;text-align:center;border-radius:var(--r);background:transparent;border:1.5px solid var(--border);color:var(--ink2);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;text-decoration:none;transition:.18s;}
+.btn-back:hover{border-color:var(--amber);color:var(--ink);}
+.foot{margin-top:20px;text-align:center;font-size:13px;color:var(--ink3);}
+.foot a{color:var(--amber);font-weight:500;}
+.foot a:hover{text-decoration:underline;}
+
+/* Messages */
+.ok{background:#f0fdf4;border:1px solid #bbf7d0;color:#16a34a;font-size:13px;padding:10px 13px;border-radius:var(--r);margin-bottom:16px;display:flex;align-items:center;gap:7px;}
+.err{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;font-size:13px;padding:10px 13px;border-radius:var(--r);margin-bottom:16px;}
+
+@media(max-width:860px){.left{display:none;}.right{background:var(--bg);}}
+
+/* ---------- Page differences (same as the old pages) ---------- */
+
+/* login.php */
+.page-login .left{background-image:url('https://images.unsplash.com/photo-1505691938895-1758d7feb511');}
+
+/* registration.php */
+.page-register .left{background-image:url('https://media.architecturaldigest.com/photos/63345d8c5e811ad45ceaace4/16:9/w_2560%2Cc_limit/Sleeping%2520Porch_Boggy%2520Slough_Sandersarchitecture.jpg');}
+.page-register .left::after{background:rgba(10,10,15,.48);}
+.page-register .right{overflow-y:auto;}
+.page-register .box{padding:36px;}
+.page-register .box-logo{margin-bottom:20px;}
+.page-register .box .sub{margin-bottom:24px;}
+.page-register .field{margin-bottom:14px;}
+.page-register .field i{pointer-events:none;}
+.page-register .field i.clickable{pointer-events:auto;}
+.page-register .foot{margin-top:18px;}
+
+/* forgot_password.php (no photo panel, card in the middle) */
+.page-forgot{justify-content:center;align-items:center;padding:24px;}
+.page-forgot .box{max-width:400px;}
+.page-forgot .box h2{font-size:22px;margin-bottom:6px;}
+.page-forgot .box .sub{line-height:1.6;margin-bottom:24px;}
+.page-forgot .field i{cursor:auto;}
+.page-forgot .btn-main{margin-top:0;}
+.icon-wrap{width:52px;height:52px;background:rgba(232,160,32,.12);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--amber);margin-bottom:18px;}
+
+/* Forgot password: 6-digit code box (new page, same look) */
+.otp-input{letter-spacing:.5em;font-size:20px !important;text-align:center;padding:11px 13px !important;}

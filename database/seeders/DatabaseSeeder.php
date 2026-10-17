@@ -2,24 +2,21 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
-     * Seed the application's database.
+     * Run with:  php artisan db:seed
+     * Your real data comes from the import (php artisan rsync:import-legacy), not from here.
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // Demo accounts only on your own computer, never on a live server.
+        if (app()->environment('local', 'testing')) {
+            $this->call(DemoAccountsSeeder::class);
+        } else {
+            $this->command?->warn('Not a local environment: demo accounts were NOT created.');
+        }
     }
 }

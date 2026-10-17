@@ -130,7 +130,7 @@ class LoginTest extends TestCase
 
         $this->makeUser('kobe@gmail.com', 'tenant');
         $this->post('/login', ['email' => 'kobe@gmail.com', 'password' => 'secret123']);
-        $this->get('/tenant/dashboard')->assertOk()->assertSee('Tenant User');
+        $this->get('/tenant/dashboard')->assertOk()->assertSee('Your Dashboard');
     }
 
     public function test_landlord_dashboard_is_only_for_landlords(): void

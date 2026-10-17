@@ -28,7 +28,8 @@ p{color:var(--ink3);font-size:14px;line-height:1.6;}
         <a href="{{ route('login') }}">Login</a>
     @endauth
 </nav>
-<div class="box">
+@include('partials.verify-banner')
+<div class="box"></div>
     <h1>{{ $title }}</h1>
     @auth
         <p>Signed in as <strong>{{ auth()->user()->name }}</strong> ({{ auth()->user()->role }}).</p>

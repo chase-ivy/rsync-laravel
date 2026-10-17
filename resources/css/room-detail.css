@@ -1,0 +1,73 @@
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+:root {
+    --bg:#f5f5f0; --card:#fff; --ink:#111118; --muted:#6b7280; --border:#e5e7eb;
+    --green:#16a34a; --red:#dc2626; --radius:12px; --shadow:0 2px 12px rgba(0,0,0,.06);
+}
+body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--ink); }
+
+nav { position:sticky; top:0; z-index:99; display:flex; align-items:center; justify-content:space-between; padding:0 60px; height:56px; background:#fff; border-bottom:1px solid var(--border); }
+.logo { font-weight:800; font-size:17px; color:var(--ink); letter-spacing:.5px; }
+.nav-links { display:flex; gap:24px; }
+.nav-links a { text-decoration:none; color:var(--muted); font-size:14px; font-weight:500; }
+.nav-links a:hover { color:var(--ink); }
+
+.wrap { width:90%; max-width:1100px; margin:36px auto 60px; }
+
+.back { display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--muted); text-decoration:none; margin-bottom:24px; }
+.back:hover { color:var(--ink); }
+
+.layout { display:grid; grid-template-columns:1fr 360px; gap:32px; }
+
+/* GALLERY */
+.gallery-main { border-radius:var(--radius); overflow:hidden; background:#f1f0eb; aspect-ratio:16/9; }
+.gallery-main img { width:100%; height:100%; object-fit:cover; display:block; cursor:pointer; }
+.gallery-main .no-img { width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:14px; }
+
+.gallery-thumbs { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+.gallery-thumbs img { width:72px; height:56px; object-fit:cover; border-radius:8px; cursor:pointer; border:2px solid transparent; opacity:.7; transition:.15s; }
+.gallery-thumbs img.active, .gallery-thumbs img:hover { border-color:var(--ink); opacity:1; }
+
+/* SIDEBAR INFO */
+.info-card { background:var(--card); border-radius:var(--radius); border:1px solid var(--border); box-shadow:var(--shadow); padding:24px; }
+.room-title { font-size:22px; font-weight:800; margin-bottom:6px; }
+.room-price { font-size:28px; font-weight:800; color:var(--ink); }
+.room-price span { font-size:14px; font-weight:400; color:var(--muted); }
+
+.divider { height:1px; background:var(--border); margin:18px 0; }
+
+.info-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-size:13px; }
+.info-row .label { color:var(--muted); }
+.info-row .val { font-weight:600; }
+
+.badge { display:inline-block; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:600; }
+.badge-av { background:#f0fdf4; color:var(--green); border:1px solid #bbf7d0; }
+.badge-oc { background:#fff1f2; color:var(--red);   border:1px solid #fecdd3; }
+
+.slots-block { margin:16px 0; }
+.slots-label { font-size:12px; color:var(--muted); margin-bottom:6px; }
+.slots-label strong { color:var(--ink); font-size:14px; }
+.slots-bar { height:6px; border-radius:999px; background:var(--border); overflow:hidden; }
+.slots-fill { height:100%; border-radius:999px; background:var(--ink); }
+.slots-fill.full { background:var(--red); }
+
+.desc-block { margin-top:16px; }
+.desc-block h4 { font-size:13px; font-weight:600; color:var(--muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:.3px; }
+.desc-block p { font-size:14px; line-height:1.7; color:var(--ink); }
+
+.cta-btn { display:block; width:100%; margin-top:20px; padding:13px; text-align:center; background:var(--ink); color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; text-decoration:none; transition:.2s; }
+.cta-btn:hover { background:#2d2d3a; }
+
+/* LIGHTBOX */
+.lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,.88); z-index:9999; justify-content:center; align-items:center; }
+.lightbox.show { display:flex; }
+.lightbox img { max-width:92vw; max-height:88vh; border-radius:10px; object-fit:contain; }
+.lightbox-close { position:absolute; top:20px; right:24px; font-size:28px; color:#fff; cursor:pointer; background:none; border:none; line-height:1; }
+.lightbox-prev, .lightbox-next { position:absolute; top:50%; transform:translateY(-50%); font-size:28px; color:#fff; background:rgba(255,255,255,.1); border:none; cursor:pointer; padding:10px 14px; border-radius:10px; }
+.lightbox-prev { left:20px; }
+.lightbox-next { right:20px; }
+
+footer { text-align:center; padding:24px; color:var(--muted); font-size:12px; border-top:1px solid var(--border); }
+@media(max-width:768px) {
+    nav{padding:0 20px;} .wrap{width:96%;}
+    .layout{grid-template-columns:1fr;}
+}

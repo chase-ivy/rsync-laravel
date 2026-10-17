@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 
 /**
@@ -17,7 +18,8 @@ class LoginController extends Controller
     public function show(Request $request)
     {
         return view('auth.login', [
-            'resetMsg' => $request->session()->pull('reset_success'),
+            // reset_success = legacy password-reset message; status = new messages (e.g. after registering).
+            'resetMsg' => $request->session()->pull('reset_success') ?? $request->session()->get('status'),
             'loginFailed' => false,
         ]);
     }
@@ -44,11 +46,13 @@ class LoginController extends Controller
         // Security fix (S8): new session ID after login, prevents session fixation.
         $request->session()->regenerate();
 
-        return match ($user->role) {
-            'landlord' => redirect()->route('landlord.dashboard'),
-            'tenant' => redirect()->route('tenant.dashboard'),
-            default => redirect()->route('home'),
-        };
+        // Email verification (new feature): unverified users may log in and look around,
+        // but get a fresh link (at most once every 10 minutes) and a reminder banner.
+        if (! $user->hasVerifiedEmail() && Cache::add('verify-link-sent:' . $user->user_id, true, now()->addMinutes(10))) {
+            $user->sendEmailVerificationNotification();
+        }
+
+        return redirect()->route($user->homeRoute());
     }
 
     /** GET or POST /logout — same as logout.php: end the session, go to login. */
