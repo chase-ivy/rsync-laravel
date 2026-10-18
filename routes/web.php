@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminFinanceController;
 use App\Http\Controllers\Admin\AdminMaintenanceController;
@@ -46,7 +47,12 @@ Route::middleware('auth')->group(function () {
 });
 Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
     ->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
-
+// Account page (new): details, email verification and password in one place. Any logged-in user.
+Route::middleware('auth')->group(function () {
+    Route::get('/account', [AccountController::class, 'show'])->name('account');
+    Route::post('/account/profile', [AccountController::class, 'updateProfile'])->middleware('throttle:10,1')->name('account.profile');
+    Route::post('/account/password', [AccountController::class, 'updatePassword'])->middleware('throttle:6,1')->name('account.password');
+});
 // Forgot password (forgot_password.php + the missing verify_otp step + new password)
 Route::get('/forgot-password', [ForgotPasswordController::class, 'showEmailForm'])->name('password.request');
 Route::post('/forgot-password', [ForgotPasswordController::class, 'sendCode'])->middleware('throttle:5,1')->name('password.email');

@@ -12,6 +12,7 @@
     <span>RS<em>Y</em>NC</span>
     <div class="nav-actions">
         <a href="{{ route('landlord.dashboard') }}">Dashboard</a>
+        <a href="{{ route('account') }}">Account</a>
         <a href="{{ route('logout') }}">Logout</a>
     </div>
 </nav>

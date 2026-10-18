@@ -19,9 +19,16 @@ data-dashboard-url="{{ route('tenant.dashboard') }}"
 <nav>
     <div class="logo">RSYNC</div>
     <div class="nav-links">
-        <a href="{{ route('home') }}">Home</a>
-        <a href="{{ route('rooms.index') }}">Rooms</a>
-        <a href="{{ route('login') }}">Login</a>
+        @auth
+            @php $home = auth()->user()->homeRoute(); @endphp
+            <a href="{{ route($home) }}">{{ $home === 'home' ? 'Home' : 'Dashboard' }}</a>
+            <a href="{{ route('account') }}">Account</a>
+            <a href="{{ route('logout') }}">Logout</a>
+        @else
+            <a href="{{ route('home') }}">Home</a>
+            <a href="{{ route('rooms.index') }}">Rooms</a>
+            <a href="{{ route('login') }}">Login</a>
+        @endauth
     </div>
 </nav>
 

@@ -11,6 +11,8 @@
 <nav>
     <span>RS<em>Y</em>NC</span>
     <div class="nav-actions">
+        
+        <a href="{{ route('account') }}">Account</a>
         <a href="{{ route('rooms.index') }}">Browse Rooms</a>
         <a href="{{ route('logout') }}">Logout</a>
     </div>

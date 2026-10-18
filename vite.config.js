@@ -24,6 +24,8 @@ export default defineConfig({
                 'resources/css/admin.css',        // RSYNC admin pages
                 'resources/js/admin-dashboard.js',
                 'resources/js/admin-tenants.js',
+                'resources/css/account.css',   
+                
             ],
             refresh: true,
             fonts: [
