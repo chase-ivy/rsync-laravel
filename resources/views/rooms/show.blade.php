@@ -8,13 +8,13 @@
 
 {{-- Values the page script needs (room_detail.php printed them into its <script> with PHP). --}}
 @section('body_attrs')
-data-images='@json($images->map(fn ($img) => asset("images/" . $img->filename))->values())'
+data-images='@json($images->map(fn ($img) => \App\Support\RoomPhotos::url($img->filename))->values())'
 data-apply-url="{{ route('rooms.apply') }}"
 data-dashboard-url="{{ route('tenant.dashboard') }}"
 @endsection
 
 @section('content')
-@php $cover = $images->isNotEmpty() ? asset('images/' . $images->first()->filename) : null; @endphp
+@php $cover = $images->isNotEmpty() ? \App\Support\RoomPhotos::url($images->first()->filename) : null; @endphp
 
 <nav>
     <div class="logo">RSYNC</div>
@@ -43,7 +43,7 @@ data-dashboard-url="{{ route('tenant.dashboard') }}"
             @if ($images->count() > 1)
             <div class="gallery-thumbs" id="thumbs">
                 @foreach ($images as $i => $img)
-                    <img src="{{ asset('images/' . $img->filename) }}"
+                    <img src="{{ \App\Support\RoomPhotos::url($img->filename) }}"
                          class="{{ $i === 0 ? 'active' : '' }}"
                          onclick="switchImg(this, this.src, {{ $i }})"
                          onerror="this.style.display='none'">

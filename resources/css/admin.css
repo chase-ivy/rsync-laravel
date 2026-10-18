@@ -1,0 +1,81 @@
+/* Admin pages — styles from admin_dashboard.php (inline styles moved here). */
+:root{--ink:#0a0a0f;--ink2:#3d3d4a;--ink3:#8e8ea0;--bg:#f4f3ef;--amber:#e8a020;--green:#059669;--red:#dc2626;--border:rgba(0,0,0,.08);--r:14px;--sh:0 2px 12px rgba(0,0,0,.06);}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{display:flex;flex-direction:column;min-height:100vh;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font-size:14px;}
+a{text-decoration:none;}
+nav{background:var(--ink);display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:56px;flex-shrink:0;}
+nav span{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;letter-spacing:3px;}
+nav span em{color:var(--amber);font-style:normal;}
+nav .nav-links{display:flex;gap:8px;}
+nav a{font-size:13px;color:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.2);padding:8px 12px;border-radius:8px;transition:.18s;}
+nav a:hover{color:#fff;border-color:rgba(255,255,255,.45);}
+nav a.active{color:#fff;border-color:var(--amber);}
+.wrap{width:92%;max-width:1320px;margin:26px auto;flex:1 0 auto;}
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:12px;flex-wrap:wrap;}
+.top-bar h1{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:.15s;}
+.btn-dark{background:var(--ink);color:#fff;}.btn-dark:hover{background:#1e1e2e;}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--ink);}.btn-ghost:hover{background:rgba(0,0,0,.04);}
+.card{background:#fff;border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;border:1px solid var(--border);margin-bottom:24px;scroll-margin-top:16px;}
+.card-header{padding:22px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:20px;}
+.card-header h2{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--ink);margin:0;}
+.tbl-wrap{overflow:auto;}
+table{width:100%;border-collapse:collapse;min-width:720px;}
+thead th{background:var(--ink);color:#fff;padding:14px 16px;font-size:12px;font-weight:600;text-align:left;letter-spacing:.3px;}
+tbody td{padding:14px 16px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;}
+.badge-pending{background:rgba(245,158,11,.12);color:#92400e;}
+.badge-verified{background:rgba(5,150,105,.12);color:var(--green);}
+.action-buttons{display:flex;flex-wrap:wrap;gap:8px;}
+.action-buttons .btn{padding:7px 12px;font-size:12px;}
+
+/* Financial summary (was inline style="" in the old page) */
+.financial-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;padding:20px;}
+.total-card{background:#fff;border-radius:12px;padding:20px;border:1px solid var(--border);box-shadow:var(--sh);}
+.total-card h3{font-size:14px;color:var(--ink3);margin-bottom:8px;}
+.total-card p{font-size:24px;font-weight:700;color:var(--ink);}
+.total-card p.green{color:var(--green);}
+.chart-box{padding:20px;}
+.chart-box h3{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;margin-bottom:16px;}
+.chart-holder{max-width:300px;margin:0 auto;}
+
+/* New: the old Approve / Reject buttons had no colours */
+.btn.approve{background:rgba(5,150,105,.1);color:var(--green);border:1px solid rgba(5,150,105,.25);}
+.btn.approve:hover{background:rgba(5,150,105,.18);}
+.btn.delete{background:rgba(220,38,38,.08);color:var(--red);border:1px solid rgba(220,38,38,.2);}
+.btn.delete:hover{background:rgba(220,38,38,.14);}
+.toast{padding:10px 16px;border-radius:9px;margin-bottom:16px;font-size:13px;font-weight:500;background:#fefce8;color:#92400e;border:1px solid #fde68a;}
+.toast.err{background:#fef2f2;color:var(--red);border-color:#fecaca;}
+.muted{color:var(--ink3);text-align:center;}
+td.muted{padding:24px 16px;}
+/* Tenants & Contracts page (tenants.php) */
+.card-sub{font-size:12px;color:var(--ink3);}
+.badge-active{background:rgba(5,150,105,.12);color:var(--green);}
+.badge-inactive,.badge-expired,.badge-left{background:rgba(220,38,38,.1);color:var(--red);}
+.badge-registered{background:rgba(59,130,246,.12);color:#1d4ed8;}
+.badge-paid,.badge-on-time{background:rgba(5,150,105,.12);color:var(--green);}
+.badge-delayed{background:rgba(220,38,38,.1);color:var(--red);}
+.form-grid{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:14px;align-items:end;padding:20px 24px;}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field label{font-size:12px;font-weight:600;color:var(--ink2);}
+.field input,.field select,.inline-form select{font-family:inherit;font-size:13px;padding:9px 11px;border:1px solid rgba(0,0,0,.15);border-radius:9px;background:#fff;color:var(--ink);}
+.field input:focus,.field select:focus,.inline-form select:focus{outline:none;border-color:var(--amber);}
+.inline-form{display:flex;gap:8px;align-items:center;}
+.inline-form select{padding:7px 10px;}
+.form-grid .btn{padding:10px 18px;}
+/* Finance (report.php) and Maintenance (maintainance.php) pages */
+.form-grid-5{grid-template-columns:1.4fr 1.2fr 1fr 1fr 1fr auto;}
+.summary-split{display:flex;flex-wrap:wrap;gap:32px;align-items:center;justify-content:center;}
+.mini-table{width:auto;min-width:280px;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.mini-table thead th{padding:10px 14px;}
+.mini-table tbody td{padding:10px 14px;}
+.mini-table .total-row td{font-weight:700;background:#fafaf8;}
+.text-success{color:var(--green);font-weight:600;font-size:13px;}
+.badge-completed{background:rgba(5,150,105,.12);color:var(--green);}
+.badge-in-progress{background:rgba(59,130,246,.12);color:#1d4ed8;}
+.report-totals{padding:16px 24px;font-size:14px;color:var(--ink2);border-bottom:1px solid var(--border);}
+.chart-box .chart-holder{flex:0 1 300px;}
+@media(max-width:860px){.form-grid,.form-grid-5{grid-template-columns:1fr;}}
+@media(max-width:640px){nav{padding:0 16px;}nav .nav-links a{padding:6px 8px;font-size:12px;}.wrap{width:96%;}}

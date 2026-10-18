@@ -23,7 +23,11 @@ class Tenancy extends Model
         'start_date',
         'end_date',
         'status',
+        'payment_status',
     ];
+
+    /** Choices for "Update Tenant Status" (admin Tenants page, from tenants.php). */
+    public const PAYMENT_STATUSES = ['Registered', 'Paid', 'On-Time', 'Delayed'];
 
     protected function casts(): array
     {

@@ -19,6 +19,7 @@ class MaintenanceRequest extends Model
         'room_id',
         'description',
         'status',
+        'resolved_at',
     ];
 
     protected function casts(): array
@@ -27,6 +28,7 @@ class MaintenanceRequest extends Model
             'tenant_id' => 'integer',
             'room_id' => 'integer',
             'submitted_at' => 'datetime',
+            'resolved_at' => 'datetime',
         ];
     }
 

@@ -69,12 +69,15 @@ return [
             'transport' => 'sendmail',
             'path' => env('MAIL_SENDMAIL_PATH', '/usr/sbin/sendmail -bs -i'),
         ],
+                // RSYNC: Brevo's web API (works on Render, where SMTP ports are blocked). See App\Mail\BrevoTransport.
+        'brevo' => [
+            'transport' => 'brevo',
+        ],
 
         'log' => [
             'transport' => 'log',
             'channel' => env('MAIL_LOG_CHANNEL'),
         ],
-
         'array' => [
             'transport' => 'array',
         ],

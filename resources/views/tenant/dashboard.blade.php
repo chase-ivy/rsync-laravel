@@ -66,7 +66,7 @@
         @foreach ($applications as $app)
         <div class="room-card">
             @if ($app->cover_image)
-                <img src="{{ asset('images/' . $app->cover_image) }}" alt="{{ $app->room_name }}" class="room-card-img" onerror="this.style.display='none'">
+                <img src="{{ \App\Support\RoomPhotos::url($app->cover_image) }}" alt="{{ $app->room_name }}" class="room-card-img" onerror="this.style.display='none'">
             @endif
             <div class="room-card-body">
                 <div class="room-card-head">
@@ -90,6 +90,91 @@
             </div>
         </div>
         @endforeach
+    @endif
+    
+    <!-- NEW: MAINTENANCE REQUESTS -->
+    <div class="section-title">🔧 Maintenance Requests</div>
+    @if ($bookings->isEmpty())
+        <div class="empty-state">
+            <i class="bx bx-wrench"></i>
+            <p>You can request maintenance once you are renting a room.</p>
+        </div>
+    @else
+        <form class="form-card" method="POST" action="{{ route('tenant.maintenance.store') }}">
+            @csrf
+            <div class="form-row">
+                <div class="field">
+                    <label for="m-room">Room</label>
+                    <select id="m-room" name="room_id" required>
+                        @foreach ($bookings as $b)
+                            <option value="{{ $b->room_id }}" @selected(old('room_id') == $b->room_id)>{{ $b->room->room_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="field grow">
+                    <label for="m-desc">What needs fixing?</label>
+                    <textarea id="m-desc" name="description" rows="2" maxlength="1000" required placeholder="e.g. The bathroom faucet is leaking">{{ old('description') }}</textarea>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-dark">Send request</button>
+        </form>
+    @endif
+    @if ($maintenance->isNotEmpty())
+        <div class="tbl-wrap">
+        <table>
+            <thead><tr><th>Room</th><th>Problem</th><th>Submitted</th><th>Status</th></tr></thead>
+            <tbody>
+            @foreach ($maintenance as $m)
+            <tr>
+                <td><strong>{{ $m->room?->room_name ?? '—' }}</strong></td>
+                <td>{{ $m->description }}</td>
+                <td>{{ $m->submitted_at?->format('M d, Y') ?? '—' }}</td>
+                <td><span class="badge {{ ['Pending' => 'badge-pend', 'In Progress' => 'badge-prog', 'Completed' => 'badge-av'][$m->status] ?? '' }}">{{ $m->status }}</span></td>
+            </tr>
+            @endforeach
+            </tbody>
+        </table>
+        </div>
+    @endif
+
+    <!-- NEW: PAYMENTS -->
+    <div class="section-title">💳 Payments</div>
+    @if ($bookings->isEmpty())
+        <div class="empty-state">
+            <i class="bx bx-wallet"></i>
+            <p>You can submit payments once you are renting a room.</p>
+        </div>
+    @else
+        <form class="form-card" method="POST" action="{{ route('tenant.payments.store') }}">
+            @csrf
+            <div class="form-row">
+                <div class="field">
+                    <label for="p-amount">Amount (₱)</label>
+                    <input id="p-amount" type="number" name="amount" min="1" step="0.01" required value="{{ old('amount') }}">
+                </div>
+                <div class="field">
+                    <label for="p-date">Date paid</label>
+                    <input id="p-date" type="date" name="date" required max="{{ now()->toDateString() }}" value="{{ old('date', now()->toDateString()) }}">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-dark">Submit payment</button>
+        </form>
+    @endif
+    @if ($payments->isNotEmpty())
+        <div class="tbl-wrap">
+        <table>
+            <thead><tr><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
+            <tbody>
+            @foreach ($payments as $p)
+            <tr>
+                <td>{{ $p->date?->format('M d, Y') }}</td>
+                <td>₱{{ number_format((float) $p->amount, 2) }}</td>
+                <td><span class="badge {{ $p->status === 'Verified' ? 'badge-av' : 'badge-pend' }}">{{ $p->status }}</span></td>
+            </tr>
+            @endforeach
+            </tbody>
+        </table>
+        </div>
     @endif
 </div>
 

@@ -51,8 +51,8 @@ window.applyForRoom = function (roomId, roomName) {
 };
 
 // Prices exactly as in the old script (note: monthly Professional is 299 here but 399 in the page).
-const mPrices = { s: 0, p: 299, e: 699 };
-const aPrices = { s: 0, p: 239, e: 559 };
+const mPrices = { s: 0, p: 399, e: 699 };
+const aPrices = { s: 0, p: 319, e: 559 };
 window.setBilling = function (mode) {
     document.getElementById('btn-m').classList.toggle('active', mode === 'monthly');
     document.getElementById('btn-a').classList.toggle('active', mode === 'annual');

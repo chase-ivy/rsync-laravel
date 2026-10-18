@@ -15,6 +15,10 @@ use Illuminate\Notifications\Notifiable;
  * - there is no `updated_at` column, so Laravel's automatic timestamps are off
  *   (`created_at` is filled by the database default)
  * - there is no `remember_token` column, so "remember me" is switched off
+ *
+ * MustVerifyEmail (new feature): new users get a link by email; until they click it,
+ * email_verified_at is empty and routes with the 'verified' middleware are blocked.
+ * (The old `verified` column is something else: the admin approving a user — see the Admin Dashboard.)
  */
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -43,6 +47,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'age' => 'integer',
             'verified' => 'boolean',
+            'verification_rejected_at' => 'datetime',
             'email_verified_at' => 'datetime',
             'created_at' => 'datetime',
         ];
@@ -53,15 +58,18 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return '';
     }
-        /** Name of the page this user lands on after login (same rules as oopPHP::login()). */
+
+    /** Name of the page this user lands on after login (same rules as oopPHP::login()). */
     public function homeRoute(): string
     {
         return match ($this->role) {
+            'admin' => 'admin.dashboard',
             'landlord' => 'landlord.dashboard',
             'tenant' => 'tenant.dashboard',
             default => 'home',
         };
     }
+
     /** Rooms this user owns as a landlord. */
     public function ownedRooms(): HasMany
     {

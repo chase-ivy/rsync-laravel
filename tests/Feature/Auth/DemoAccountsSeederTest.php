@@ -19,7 +19,7 @@ class DemoAccountsSeederTest extends TestCase
     {
         $this->seed(DemoAccountsSeeder::class);
 
-        $this->assertSame(5, User::where('email', 'like', '%@rsync.test')->count());
+        $this->assertSame(6, User::where('email', 'like', '%@rsync.test')->count());
         $landlord = User::where('email', 'landlord@rsync.test')->first();
         $room = Room::where('room_name', 'Demo Room A')->first();
 
@@ -40,6 +40,7 @@ class DemoAccountsSeederTest extends TestCase
             ['tenant2@rsync.test', 'tenant123', route('tenant.dashboard')],
             ['sublessor@rsync.test', 'sublessor123', route('home')],
             ['unverified@rsync.test', 'tenant123', route('tenant.dashboard')],
+            ['admin@rsync.test', 'admin123', route('admin.dashboard')],
         ];
 
         foreach ($cases as [$email, $password, $target]) {

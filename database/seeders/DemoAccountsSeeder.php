@@ -22,11 +22,18 @@ use Illuminate\Support\Facades\Hash;
  *   tenant2@rsync.test    / tenant123     (tenant, currently renting Demo Room A)
  *   sublessor@rsync.test  / sublessor123  (sublessor)
  *   unverified@rsync.test / tenant123     (tenant whose email is NOT verified yet — for Step 3b)
+ *  *   admin@rsync.test      / admin123      (admin — Admin Dashboard)
  */
 class DemoAccountsSeeder extends Seeder
 {
     public function run(): void
     {
+                // Safety: demo accounts (with known passwords) must never exist on the live site.
+        if (app()->environment('production')) {
+            $this->command?->error('Refusing: demo accounts are never created when APP_ENV=production.');
+
+            return;
+        }
         $accounts = [
             // email, name, age, role, password, verified?
             ['landlord@rsync.test', 'Demo Landlord', 35, 'landlord', 'landlord123', true],
@@ -34,6 +41,7 @@ class DemoAccountsSeeder extends Seeder
             ['tenant2@rsync.test', 'Demo Tenant Two', 21, 'tenant', 'tenant123', true],
             ['sublessor@rsync.test', 'Demo Sublessor', 30, 'sublessor', 'sublessor123', true],
             ['unverified@rsync.test', 'Demo Unverified', 19, 'tenant', 'tenant123', false],
+            ['admin@rsync.test', 'Demo Admin', 30, 'admin', 'admin123', true],
         ];
 
         $users = [];

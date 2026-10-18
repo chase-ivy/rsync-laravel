@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MaintenanceRequest;
+use App\Models\Payment;
 use App\Models\RoomApplication;
 use App\Models\RoomImage;
 use App\Models\Tenancy;
@@ -43,9 +45,22 @@ class TenantDashboardController extends Controller
         $msg = $request->session()->pull('msg');
         $isErr = $msg && str_starts_with($msg, 'err:');
 
+        // New: the tenant's own maintenance requests and payments.
+        $maintenance = MaintenanceRequest::with('room:room_id,room_name')
+            ->where('tenant_id', $user->user_id)
+            ->orderByDesc('submitted_at')
+            ->orderByDesc('request_id')
+            ->get();
+        $payments = Payment::where('user_id', $user->user_id)
+            ->orderByDesc('date')
+            ->orderByDesc('payment_id')
+            ->get();
+
         return view('tenant.dashboard', [
             'bookings' => $bookings,
             'applications' => $applications,
+            'maintenance' => $maintenance,
+            'payments' => $payments,
             'msg' => $isErr ? substr($msg, 4) : $msg,
             'isErr' => $isErr,
         ]);

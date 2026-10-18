@@ -6,7 +6,7 @@
     $max = (int) ($r->max_occupants ?? 1);
     $cur = (int) ($r->current_occupants ?? 0);
     $pct = $max > 0 ? round($cur / $max * 100) : 0;
-    $cover = $r->cover_image ? asset('images/' . $r->cover_image) : null;
+    $cover = $r->cover_image ? \App\Support\RoomPhotos::url($r->cover_image) : null;
 @endphp
 <div class="card" data-n="{{ mb_strtolower($r->room_name) }}" data-s="{{ strtolower((string) $r->status) }}" data-p="{{ $r->price }}">
     <div class="c-img">
