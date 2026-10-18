@@ -17,7 +17,7 @@ FROM php:8.5-apache
 # PostgreSQL driver (Supabase) + zip/unzip for Composer.
 RUN apt-get update \
  && apt-get install -y --no-install-recommends libpq-dev libzip-dev unzip git \
- && docker-php-ext-install pdo_pgsql zip opcache \
+ && docker-php-ext-install pdo_pgsql zip \
  && rm -rf /var/lib/apt/lists/*
 
 # Production PHP settings: 5 MB photos (same as the app's limit), faster code (opcache).
