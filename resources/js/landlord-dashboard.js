@@ -109,6 +109,16 @@ function deleteExistingImage(imageId, roomId) {
     });
 }
 
+// A new room needs at least one photo (the server checks this too).
+window.checkAddPhotos = function (form) {
+    const hasPhoto = [...form.querySelectorAll('input[type=file]')].some(i => i.files.length > 0);
+    if (!hasPhoto) {
+        alert('Please add at least one photo of the room. The first photo is the cover.');
+        return false;
+    }
+    return true;
+};
+
 // ── GENERIC SLOT BUILDER ──
 function makeSlot(gridId, i, isCover) {
     const slot = document.createElement('div');

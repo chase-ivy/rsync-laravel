@@ -21,7 +21,7 @@ nav{position:fixed;inset:0 0 auto;z-index:200;display:flex;justify-content:space
 .hero h1 em::after{content:'';position:absolute;bottom:4px;left:0;right:0;height:3px;background:var(--amber);border-radius:2px;opacity:.3;}
 .hero-sub{font-size:16px;color:var(--ink3);max-width:420px;line-height:1.6;margin-bottom:36px;animation:fadeUp .6s .2s both;}
 
-.search-wrap{width:100%;max-width:540px;position:relative;animation:fadeUp .6s .3s both;}
+.search-wrap{width:100%;max-width:540px;position:relative;z-index:50;animation:fadeUp .6s .3s both;} /* z-index keeps the results above the room counts */
 .search-wrap input{width:100%;padding:17px 52px;font-family:'DM Sans',sans-serif;font-size:15px;border:1.5px solid var(--border);border-radius:14px;background:#fff;outline:none;box-shadow:0 4px 24px rgba(0,0,0,.06);transition:.2s;}
 .search-wrap input:focus{border-color:var(--amber);box-shadow:0 0 0 4px rgba(232,160,32,.15);}
 .search-wrap .s-icon{position:absolute;left:17px;top:50%;transform:translateY(-50%);font-size:19px;color:var(--ink3);pointer-events:none;}
@@ -40,6 +40,7 @@ nav{position:fixed;inset:0 0 auto;z-index:200;display:flex;justify-content:space
 .sr-msg{padding:18px;text-align:center;color:var(--ink3);font-size:13px;}
 
 .hero-stats{display:flex;gap:28px;margin-top:44px;animation:fadeUp .6s .4s both;}
+.hero:has(#sr.show) .hero-stats{visibility:hidden;} /* hide the room counts while search results are open */
 .stat{text-align:center;}
 .stat-num{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;}
 .stat-label{font-size:11px;color:var(--ink3);margin-top:2px;letter-spacing:.4px;}

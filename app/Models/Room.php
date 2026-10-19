@@ -48,6 +48,16 @@ class Room extends Model
                 ->orderBy('image_id')
                 ->limit(1)]);
     }
+
+
+       /** Only rooms with a free slot (fewer Active tenants than max_occupants). Full rooms are hidden from the public lists. */
+    public function scopeWithOpenSlots(Builder $query): Builder
+    {
+        return $query->whereRaw(
+            "(SELECT COUNT(*) FROM tenants WHERE tenants.room_id = rooms.room_id AND tenants.status = 'Active') < COALESCE(rooms.max_occupants, 1)"
+        );
+    }
+
     /** The landlord who owns the room (can be empty). */
     public function owner(): BelongsTo
     {

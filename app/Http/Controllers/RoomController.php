@@ -15,7 +15,9 @@ class RoomController extends Controller
     {
         $search = trim((string) $request->query('name', ''));
 
-        $rooms = Room::withListingInfo()
+       
+                $rooms = Room::withListingInfo()
+            ->withOpenSlots()   // full rooms are not listed
             ->when($search !== '', fn ($q) => $q->whereRaw('LOWER(room_name) LIKE ?', ['%' . mb_strtolower($search) . '%'])->orderBy('room_id'))
             ->when($search === '', fn ($q) => $q->orderByDesc('created_at'))
             ->get();

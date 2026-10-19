@@ -97,7 +97,7 @@ data-url-reject="{{ route('landlord.applications.reject') }}"
 <div class="modal-box">
     <button class="close-x" onclick="closeModal('addModal')">✕</button>
     <h3>Add Room</h3>
-    <form method="POST" action="{{ route('landlord.rooms.store') }}" enctype="multipart/form-data">
+        <form method="POST" action="{{ route('landlord.rooms.store') }}" enctype="multipart/form-data" onsubmit="return checkAddPhotos(this)"></form>
         @csrf
         <input type="hidden" name="add_room" value="1">
         <div class="field"><label>Room Name</label><input type="text" name="room_name" placeholder="e.g. Room 201" required></div>
@@ -105,7 +105,7 @@ data-url-reject="{{ route('landlord.applications.reject') }}"
             <div class="field"><label>Price / month</label><input type="number" name="price" placeholder="3500" min="0" required></div>
             <div class="field"><label>Max Occupants</label><input type="number" name="max_occupants" value="1" min="1" required></div>
         </div>
-        <div class="field"><label>Images — up to 8 · first = cover</label><div class="img-grid" id="add_grid"></div></div>
+      <label>Images — at least 1, up to 8 · first = cover</label>
         <div class="field"><label>Description</label><textarea name="description" placeholder="Describe the room…"></textarea></div>
         <div class="modal-foot">
             <button type="button" class="btn btn-ghost" onclick="closeModal('addModal')">Cancel</button>

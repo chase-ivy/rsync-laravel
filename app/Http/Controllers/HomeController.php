@@ -25,7 +25,10 @@ class HomeController extends Controller
             'total' => $all->count(),
             'available' => $available->count(),
             'occupied' => $all->count() - $available->count(),
-            'featured' => $available->concat($all->where('status', '!==', 'Available'))->take(6),
+                        // Full rooms are not shown (available first, then the rest that still have a free slot).
+            'featured' => $available->concat($all->where('status', '!==', 'Available'))
+                ->filter(fn (Room $r) => (int) $r->current_occupants < max(1, (int) $r->max_occupants))
+                ->take(6),
         ]);
     }
 
@@ -34,8 +37,9 @@ class HomeController extends Controller
     {
         $like = '%' . mb_strtolower(trim($text)) . '%';
 
-        return Room::withListingInfo()
-            ->where(function ($q) use ($like) {
+               return Room::withListingInfo()
+            ->withOpenSlots()   // full rooms are not shown in the search either
+            ->where(function($q) use ($like) {
                 // MariaDB ignored upper/lower case; LOWER() keeps that on PostgreSQL.
                 $q->whereRaw('LOWER(room_name) LIKE ?', [$like])
                     ->orWhereRaw('LOWER(description) LIKE ?', [$like])

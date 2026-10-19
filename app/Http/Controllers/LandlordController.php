@@ -64,8 +64,12 @@ class LandlordController extends Controller
     /** POST /landlord/rooms — "Save Room" in the Add Room window. */
     public function store(Request $request): RedirectResponse
     {
-        if ($error = $this->validateRoom($request)) {
+                if ($error = $this->validateRoom($request)) {
             return $this->back('err:' . $error);
+        }
+        // New rule: a room needs at least one photo (the cover).
+        if (count(array_filter((array) $request->file('images', []))) === 0) {
+            return $this->back('err:Please add at least one photo of the room.');
         }
 
         $room = Room::create([
@@ -75,14 +79,17 @@ class LandlordController extends Controller
             'description' => $request->input('description'),
             'status' => 'Available',
             'max_occupants' => max(1, (int) $request->input('max_occupants')),
-        ]);
-
-        $saved = $this->saveImages($room, $request->file('images', []), self::MAX_IMAGES);
-        if ($saved > 0) {
-            $request->session()->put('upload_status', "{$saved} image(s) stored successfully.");
+        ]);        $saved = $this->saveImages($room, $request->file('images', []), self::MAX_IMAGES);
+        if ($saved === 0) {
+            // Every upload failed: don't keep a room without photos.
+            $room->delete();
+            return $this->back("err:We couldn't upload the photos, so the room was not added. Please try again.");
         }
+        $request->session()->put('upload_status', "{$saved} image(s) stored successfully.");
 
         return $this->back('Room added successfully.');
+
+       
     }
 
     /** POST /landlord/rooms/update — "Update Room" in the Edit Room window. New photos are added to the old ones. */
@@ -144,10 +151,14 @@ class LandlordController extends Controller
         }
 
         $image = $room->images()->whereKey((int) $request->input('image_id'))->first();
+       
         if (! $image) {
             return response()->json(['status' => 'error', 'message' => 'Image not found']);
         }
-
+        // A room must keep at least one photo.
+        if ($room->images()->count() <= 1) {
+            return response()->json(['status' => 'error', 'message' => 'A room needs at least one photo. Add a new photo first, then remove this one.']);
+        }
         $image->delete();
         RoomPhotos::delete($image->filename);   // fine if the file is already gone
 

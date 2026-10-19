@@ -88,7 +88,7 @@ class RoomPhotosSupabaseTest extends TestCase
             && $r->hasHeader('Authorization', 'Bearer eyJhbGciOi.test.key'));
     }
 
-    public function test_failed_upload_keeps_the_room_and_skips_the_photo(): void
+        public function test_failed_upload_does_not_add_a_room_without_photos(): void
     {
         Http::fake([self::BASE . '/*' => Http::response(['error' => 'Unauthorized'], 403)]);
 
@@ -97,7 +97,7 @@ class RoomPhotosSupabaseTest extends TestCase
             'images' => [UploadedFile::fake()->image('a.jpg')],
         ])->assertRedirect(route('landlord.dashboard'));
 
-        $this->assertSame(1, Room::count());
+                $this->assertSame(0, Room::count());   // every photo failed, so the room was not kept
         $this->assertSame(0, RoomImage::count());
     }
 
@@ -106,7 +106,8 @@ class RoomPhotosSupabaseTest extends TestCase
         Http::fake([self::BASE . '/*' => Http::response([], 200)]);
         $me = $this->landlord();
         $room = Room::create(['owner_id' => $me->user_id, 'room_name' => 'Room 201', 'price' => 4500, 'max_occupants' => 2]);
-        $img = RoomImage::create(['room_id' => $room->room_id, 'filename' => 'a.jpg', 'sort_order' => 0]);
+                $img = RoomImage::create(['room_id' => $room->room_id, 'filename' => 'a.jpg', 'sort_order' => 0]);
+        RoomImage::create(['room_id' => $room->room_id, 'filename' => 'b.jpg', 'sort_order' => 1]);   // a room keeps at least one photo
 
         $this->actingAs($me)->post('/landlord/rooms/images/delete', ['image_id' => $img->image_id, 'room_id' => $room->room_id]);
 
