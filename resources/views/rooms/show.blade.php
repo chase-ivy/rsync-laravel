@@ -95,8 +95,12 @@ data-dashboard-url="{{ route('tenant.dashboard') }}"
                 </div>
                 @endif
 
-                @if (auth()->user()?->role === 'tenant')
-                    @if (!$full)
+                    @if (auth()->user()?->role === 'tenant')
+                    @php $myStay = auth()->user()->activeTenancy(); @endphp
+                    @if ($myStay)
+                        {{-- Business rule: a tenant rents one room at a time. --}}
+                        <button class="cta-btn" style="background:#9ca3af;cursor:not-allowed" disabled>{{ $myStay->room_id === $room->room_id ? 'You live here' : 'You already have a room' }}</button>
+                    @elseif (!$full)
                         <button class="cta-btn" onclick="applyForRoom({{ $room->room_id }}, this.dataset.name)" data-name="{{ $room->room_name }}">Apply Now</button>
                     @else
                         <button class="cta-btn" style="background:#9ca3af;cursor:not-allowed" disabled>Room Full</button>

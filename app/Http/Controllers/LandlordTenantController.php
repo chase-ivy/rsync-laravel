@@ -51,6 +51,12 @@ class LandlordTenantController extends Controller
                 return $this->error('End date must be after start date.');
             }
 
+                        // Business rule: a tenant rents one room at a time (checked after the old checks, inside the lock).
+            if ($existing = $tenant->activeTenancy()) {
+                $where = $existing->room_id === $room->room_id ? 'this room' : ($existing->room?->room_name ?? 'another room');
+                return $this->error("{$tenant->name} already has a room ({$where}). Remove them there first.");
+            }
+
             Tenancy::create([
                 'user_id' => $tenant->user_id,
                 'room_id' => $room->room_id,

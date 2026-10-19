@@ -82,6 +82,12 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Tenancy::class, 'user_id', 'user_id');
     }
 
+        /** The room this user currently rents (an Active contract), or null. A tenant rents one room at a time. */
+    public function activeTenancy(): ?Tenancy
+    {
+        return $this->tenancies()->where('status', 'Active')->with('room:room_id,room_name')->first();
+    }
+
     public function applications(): HasMany
     {
         return $this->hasMany(RoomApplication::class, 'user_id', 'user_id');

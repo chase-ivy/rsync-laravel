@@ -54,12 +54,11 @@ data-dashboard-url="{{ route('tenant.dashboard') }}"
     </div>
     <div class="grid">
     @forelse ($featured as $r)
-        @include('partials.room-card', ['r' => $r, 'withApply' => true])
+        @include('partials.room-card', ['r' => $r, 'withApply' => ! (auth()->user()?->role === 'tenant' && auth()->user()->activeTenancy())])
     @empty
         <p style="color:var(--ink3);grid-column:1/-1;padding:40px 0">No rooms listed yet.</p>
     @endforelse
-    </div>
-
+</div>
 <!-- ═══ SUBSCRIPTION PLANS SECTION ═══ -->
 <div class="section" id="plans">
     <div class="plan-hero">

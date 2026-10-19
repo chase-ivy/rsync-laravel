@@ -187,7 +187,8 @@ class PublicPagesTest extends TestCase
 
         $this->actingAs($tenant)->get('/rooms/' . $room->room_id)->assertSee('Apply Now');
 
-        Tenancy::create(['user_id' => $tenant->user_id, 'room_id' => $room->room_id, 'start_date' => '2026-01-01', 'end_date' => '2026-12-01', 'status' => 'Active']);
+               // Someone else takes the only slot.
+        Tenancy::create(['user_id' => $this->user('other@gmail.com')->user_id, 'room_id' => $room->room_id, 'start_date' => '2026-01-01', 'end_date' => '2026-12-01', 'status' => 'Active']);
         $this->actingAs($tenant)->get('/rooms/' . $room->room_id)->assertSee('Room Full')->assertDontSee('Apply Now');
     }
 
