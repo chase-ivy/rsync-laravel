@@ -28,6 +28,17 @@ nav a:hover{color:#fff;border-color:rgba(255,255,255,.5);}
 .pill{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;}
 .pill.ok{background:rgba(5,150,105,.12);color:var(--green);}
 .pill.warn{background:rgba(251,191,36,.2);color:#b45309;}
+.pill.bad{background:rgba(220,38,38,.1);color:var(--red);}
+
+/* Profile picture and business permit */
+.photo-row{display:flex;gap:18px;align-items:flex-start;}
+.photo-body{flex:1;min-width:0;}
+.upload-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:6px 0 2px;}
+.upload-row input[type=file]{flex:1;min-width:200px;font-family:inherit;font-size:13px;padding:7px;border:1px dashed rgba(0,0,0,.2);border-radius:9px;background:#fafaf8;}
+.inline-form{margin-top:8px;}
+.link-btn{background:none;border:0;padding:0;font:inherit;font-size:12px;color:var(--red);cursor:pointer;text-decoration:underline;}
+.file-link{display:inline-flex;align-items:center;gap:5px;color:#b45309;font-weight:600;}
+.file-link:hover{text-decoration:underline;}
 
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .field{margin-bottom:12px;}
@@ -54,4 +65,6 @@ nav a:hover{color:#fff;border-color:rgba(255,255,255,.5);}
     .card{padding:18px 16px;}
     .card-foot{flex-direction:column-reverse;align-items:stretch;}
     .card-foot .btn{justify-content:center;}
+    .photo-row{flex-direction:column;align-items:center;text-align:center;}
+    .upload-row{flex-direction:column;align-items:stretch;}
 }

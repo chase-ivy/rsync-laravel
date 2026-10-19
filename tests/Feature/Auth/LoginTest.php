@@ -51,12 +51,12 @@ class LoginTest extends TestCase
             ->assertRedirect(route('landlord.dashboard'));
     }
 
-    public function test_sublessor_goes_to_home(): void
+    public function test_sublessor_goes_to_the_landlord_dashboard(): void
     {
         $this->makeUser('sub@gmail.com', 'sublessor');
 
         $this->post('/login', ['email' => 'sub@gmail.com', 'password' => 'secret123'])
-            ->assertRedirect(route('home'));
+            ->assertRedirect(route('landlord.dashboard'));   // sublessors rent out rooms too
     }
 
     public function test_email_is_case_insensitive_like_the_old_database(): void

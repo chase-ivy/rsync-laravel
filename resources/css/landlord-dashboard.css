@@ -90,3 +90,11 @@ footer{background:var(--ink);border-top:1px solid rgba(255,255,255,.06);padding:
 .foot-logo em{color:var(--amber);font-style:normal;}
 footer p{font-size:12px;color:rgba(255,255,255,.3);}
 @media(max-width:640px){nav{padding:0 16px;}.wrap{width:96%;}.img-grid{grid-template-columns:repeat(2,1fr);}footer{flex-direction:column;gap:6px;padding:18px;}}
+
+
+/* My Tenants page */
+.t-count{font-size:13px;color:var(--ink3);}
+.t-person{display:flex;align-items:center;gap:10px;}
+.t-sub{font-size:12px;color:var(--ink3);margin-top:2px;}
+.t-empty{text-align:center;color:var(--ink3);padding:36px 14px !important;}
+.badge-warn{background:rgba(251,191,36,.2);color:#b45309;}

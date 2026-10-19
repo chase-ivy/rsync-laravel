@@ -55,7 +55,7 @@
         <div class="tbl-wrap">
             <table>
                 <thead>
-                    <tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Action</th></tr>
+                    <tr><th>Name</th><th>Email</th><th>Role</th><th>Business permit</th><th>Status</th><th>Action</th></tr>
                 </thead>
                 <tbody>
                 @forelse ($pendingUsers as $u)
@@ -63,6 +63,15 @@
                         <td>{{ $u->name }}</td>
                         <td>{{ $u->email }}</td>
                         <td>{{ ucfirst($u->role) }}</td>
+                        <td>
+                            @if ($u->business_permit)
+                                <a href="{{ route('account.permit.show', $u->user_id) }}" target="_blank" rel="noopener">View permit</a>
+                            @elseif ($u->isOwner())
+                                <span class="muted">Not uploaded</span>
+                            @else
+                                <span class="muted">—</span>
+                            @endif
+                        </td>
                         <td><span class="badge badge-pending">Pending</span></td>
                         <td>
                             <div class="action-buttons">
@@ -78,7 +87,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="5" class="muted">No users waiting for verification.</td></tr>
+                    <tr><td colspan="6" class="muted">No users waiting for verification.</td></tr>
                 @endforelse
                 </tbody>
             </table>

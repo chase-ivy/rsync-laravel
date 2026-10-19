@@ -17,6 +17,19 @@ use Illuminate\Support\Facades\DB;
  */
 class LandlordTenantController extends Controller
 {
+    /** GET /landlord/tenants: everyone currently renting one of my rooms (photo, name, room, contract, status). */
+    public function page(Request $request)
+    {
+        $tenancies = Tenancy::with(['user:user_id,name,email,profile_photo', 'room:room_id,room_name'])
+            ->where('status', 'Active')
+            ->whereHas('room', fn ($q) => $q->where('owner_id', $request->user()->user_id))
+            ->get()
+            ->sortBy([fn ($t) => $t->room?->room_name, fn ($t) => $t->user?->name])
+            ->values();
+
+        return view('landlord.tenants', ['tenancies' => $tenancies, 'today' => now()->startOfDay()]);
+    }
+
     /** POST /landlord/tenants/assign */
     public function assign(Request $request): JsonResponse
     {
@@ -51,7 +64,7 @@ class LandlordTenantController extends Controller
                 return $this->error('End date must be after start date.');
             }
 
-                        // Business rule: a tenant rents one room at a time (checked after the old checks, inside the lock).
+            // Business rule: a tenant rents one room at a time (checked after the old checks, inside the lock).
             if ($existing = $tenant->activeTenancy()) {
                 $where = $existing->room_id === $room->room_id ? 'this room' : ($existing->room?->room_name ?? 'another room');
                 return $this->error("{$tenant->name} already has a room ({$where}). Remove them there first.");

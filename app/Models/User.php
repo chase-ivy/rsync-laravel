@@ -48,6 +48,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'age' => 'integer',
             'verified' => 'boolean',
             'verification_rejected_at' => 'datetime',
+            'business_permit_uploaded_at' => 'datetime',
             'email_verified_at' => 'datetime',
             'created_at' => 'datetime',
         ];
@@ -64,9 +65,48 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return match ($this->role) {
             'admin' => 'admin.dashboard',
-            'landlord' => 'landlord.dashboard',
+            'landlord', 'sublessor' => 'landlord.dashboard',   // sublessors also rent out rooms
             'tenant' => 'tenant.dashboard',
             default => 'home',
+        };
+    }
+
+    /** Landlords and sublessors both rent out rooms and use the same dashboard. */
+    public function isOwner(): bool
+    {
+        return in_array($this->role, ['landlord', 'sublessor'], true);
+    }
+
+    /** Web address of the profile picture, or null when there is none. */
+    public function photoUrl(): ?string
+    {
+        return $this->profile_photo ? \App\Support\RoomPhotos::url($this->profile_photo) : null;
+    }
+
+    /** Up to two letters for the round placeholder when there is no picture ("Kobe Bryant" → "KB"). */
+    public function initials(): string
+    {
+        $parts = preg_split('/\s+/', trim((string) $this->name)) ?: [];
+        $letters = array_map(fn ($p) => mb_strtoupper(mb_substr($p, 0, 1)), array_slice(array_filter($parts), 0, 2));
+
+        return implode('', $letters) ?: '?';
+    }
+
+    /** Users the admin may approve or reject: not admins, and landlords only once they uploaded a business permit. */
+    public function scopeReviewable(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
+    {
+        return $query->where('role', '!=', 'admin')
+            ->where(fn ($q) => $q->where('role', '!=', 'landlord')->orWhereNotNull('business_permit'));
+    }
+
+    /** Business permit review: none (not uploaded), pending, approved or rejected. */
+    public function permitStatus(): string
+    {
+        return match (true) {
+            ! $this->business_permit => 'none',
+            (bool) $this->verified => 'approved',
+            $this->verification_rejected_at !== null => 'rejected',
+            default => 'pending',
         };
     }
 
@@ -82,7 +122,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Tenancy::class, 'user_id', 'user_id');
     }
 
-        /** The room this user currently rents (an Active contract), or null. A tenant rents one room at a time. */
+    /** The room this user currently rents (an Active contract), or null. A tenant rents one room at a time. */
     public function activeTenancy(): ?Tenancy
     {
         return $this->tenancies()->where('status', 'Active')->with('room:room_id,room_name')->first();

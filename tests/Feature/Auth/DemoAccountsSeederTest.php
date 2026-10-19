@@ -38,7 +38,7 @@ class DemoAccountsSeederTest extends TestCase
             ['landlord@rsync.test', 'landlord123', route('landlord.dashboard')],
             ['tenant@rsync.test', 'tenant123', route('tenant.dashboard')],
             ['tenant2@rsync.test', 'tenant123', route('tenant.dashboard')],
-            ['sublessor@rsync.test', 'sublessor123', route('home')],
+            ['sublessor@rsync.test', 'sublessor123', route('landlord.dashboard')],
             ['unverified@rsync.test', 'tenant123', route('tenant.dashboard')],
             ['admin@rsync.test', 'admin123', route('admin.dashboard')],
         ];

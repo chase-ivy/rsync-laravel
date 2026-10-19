@@ -47,12 +47,18 @@ Route::middleware('auth')->group(function () {
 });
 Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
     ->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+
 // Account page (new): details, email verification and password in one place. Any logged-in user.
 Route::middleware('auth')->group(function () {
     Route::get('/account', [AccountController::class, 'show'])->name('account');
     Route::post('/account/profile', [AccountController::class, 'updateProfile'])->middleware('throttle:10,1')->name('account.profile');
     Route::post('/account/password', [AccountController::class, 'updatePassword'])->middleware('throttle:6,1')->name('account.password');
+    Route::post('/account/photo', [AccountController::class, 'updatePhoto'])->middleware('throttle:10,1')->name('account.photo');
+    Route::post('/account/photo/remove', [AccountController::class, 'removePhoto'])->name('account.photo.remove');
+    Route::post('/account/permit', [AccountController::class, 'uploadPermit'])->middleware('throttle:10,1')->name('account.permit');
+    Route::get('/account/permit/{id}', [AccountController::class, 'permit'])->whereNumber('id')->name('account.permit.show');   // owner or admin only
 });
+
 // Forgot password (forgot_password.php + the missing verify_otp step + new password)
 Route::get('/forgot-password', [ForgotPasswordController::class, 'showEmailForm'])->name('password.request');
 Route::post('/forgot-password', [ForgotPasswordController::class, 'sendCode'])->middleware('throttle:5,1')->name('password.email');
@@ -73,9 +79,10 @@ Route::middleware('role:tenant')->group(function () {
 });
 
 // Landlord dashboard (landlord_dashboard.php). Looking is allowed; changing anything needs a verified email.
-Route::middleware('role:landlord')->prefix('landlord')->name('landlord.')->group(function () {
+Route::middleware('role:landlord,sublessor')->prefix('landlord')->name('landlord.')->group(function () {
     Route::get('/dashboard', [LandlordController::class, 'index'])->name('dashboard');
     Route::get('/maintenance', [MaintenanceController::class, 'index'])->name('maintenance');   // maintenance.php
+    Route::get('/tenants', [LandlordTenantController::class, 'page'])->name('tenants');   // new: my current tenants
 
     Route::middleware('verified')->group(function () {
         Route::post('/rooms', [LandlordController::class, 'store'])->name('rooms.store');

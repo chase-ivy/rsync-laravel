@@ -27,12 +27,13 @@ class AdminDashboardController extends Controller
             ->whereBetween('date', [$now->copy()->startOfMonth()->toDateString(), $now->copy()->endOfMonth()->toDateString()])
             ->sum('amount');
 
-           // Pie chart: verified payments per month of this year.
+        // Pie chart: verified payments per month of this year.
         $monthly = Payment::monthlyVerifiedTotals();
 
         // Verify Users (oopPHP::get_pending_users: not a landlord and not yet verified) — admins excluded,
         // and users the admin already rejected are not shown again.
-        $pendingUsers = User::whereNotIn('role', ['landlord', 'admin'])
+        // New: landlords show up too once they upload a business permit.
+        $pendingUsers = User::reviewable()
             ->where('verified', false)
             ->whereNull('verification_rejected_at')
             ->orderBy('created_at')
@@ -104,10 +105,10 @@ class AdminDashboardController extends Controller
         return $this->back('Payment of ₱' . number_format((float) $payment->amount, 2) . ' verified.');
     }
 
-    /** Landlords and admins are never in the Verify Users list, so they can't be approved/rejected here. */
+    /** Admins are never in the Verify Users list; landlords only after uploading a business permit. */
     private function reviewable(int $id): ?User
     {
-        return User::whereNotIn('role', ['landlord', 'admin'])->find($id);
+        return User::reviewable()->find($id);
     }
 
     private function back(string $msg): RedirectResponse

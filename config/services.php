@@ -35,16 +35,17 @@ return [
         ],
     ],
 
-        // RSYNC room photos. PHOTOS_DRIVER=local → public/images (your computer);
+    // RSYNC room photos. PHOTOS_DRIVER=local → public/images (your computer);
     // PHOTOS_DRIVER=supabase → a public Supabase Storage bucket (Render). See App\Support\RoomPhotos.
     'photos' => [
         'driver' => env('PHOTOS_DRIVER', 'local'),
-         'supabase_url' => env('SUPABASE_URL'),                 // https://<project-ref>.supabase.co
-        'supabase_key' => env('SUPABASE_SECRET_KEY'),        // secret / service_role key — server only, never in JS      // secret / service_role key — server only, never in JS
+        'supabase_url' => env('SUPABASE_URL'),               // https://<project-ref>.supabase.co
+        'supabase_key' => env('SUPABASE_SECRET_KEY'),        // secret / service_role key — server only, never in JS
         'bucket' => env('SUPABASE_BUCKET', 'room-photos'),
+        'private_bucket' => env('SUPABASE_PRIVATE_BUCKET', 'documents'),   // business permits (private)
     ],
 
-        // RSYNC emails through Brevo's API (MAIL_MAILER=brevo). The key goes in .env / Render only.
+    // RSYNC emails through Brevo's API (MAIL_MAILER=brevo). The key goes in .env / Render only.
     'brevo' => [
         'key' => env('BREVO_API_KEY'),
     ],

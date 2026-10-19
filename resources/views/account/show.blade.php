@@ -15,6 +15,8 @@
     $msg = $isErr ? substr($msg, 4) : $msg;
     $pe = $errors->getBag('profile');
     $pw = $errors->getBag('password');
+    $ph = $errors->getBag('photo');
+    $pm = $errors->getBag('permit');
 @endphp
 
 <nav>
@@ -33,6 +35,38 @@
 
     @if ($msg)<div class="toast {{ $isErr ? 'err' : '' }}">{{ $msg }}</div>@endif
     @if (session('status'))<div class="toast">{{ session('status') }}</div>@endif
+
+    {{-- ── Profile picture ── --}}
+    <section class="card">
+        <div class="card-head">
+            <h2><i class="bx bx-camera"></i> Profile picture</h2>
+        </div>
+        <div class="photo-row">
+            @include('partials.avatar', ['u' => $user, 'size' => 84])
+            <div class="photo-body">
+                <p class="text">
+                    @if ($user->role === 'tenant')
+                        Add a clear photo of your face so your landlord can recognize you.
+                    @else
+                        Add a clear photo of your face so your tenants and the RSYNC team can recognize you.
+                    @endif
+                </p>
+                <form method="POST" action="{{ route('account.photo') }}" enctype="multipart/form-data" class="upload-row">
+                    @csrf
+                    <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" required>
+                    <button type="submit" class="btn btn-dark">{{ $user->profile_photo ? 'Change picture' : 'Upload picture' }}</button>
+                </form>
+                @if ($ph->has('photo'))<p class="f-err">{{ $ph->first('photo') }}</p>@endif
+                <p class="hint">JPG, PNG or WEBP, up to 5 MB.</p>
+                @if ($user->profile_photo)
+                    <form method="POST" action="{{ route('account.photo.remove') }}" class="inline-form">
+                        @csrf
+                        <button type="submit" class="link-btn">Remove picture</button>
+                    </form>
+                @endif
+            </div>
+        </div>
+    </section>
 
     {{-- ── Profile ── --}}
     <section class="card">
@@ -93,6 +127,41 @@
             </form>
         @endif
     </section>
+
+    @if ($user->isOwner())
+    {{-- ── Business permit (landlords and sublessors) ── --}}
+    @php $permit = $user->permitStatus(); @endphp
+    <section class="card">
+        <div class="card-head">
+            <h2><i class="bx bx-file"></i> Business permit</h2>
+            @switch ($permit)
+                @case('approved') <span class="pill ok"><i class="bx bx-check-circle"></i> Approved</span> @break
+                @case('pending')  <span class="pill warn"><i class="bx bx-time-five"></i> Waiting for review</span> @break
+                @case('rejected') <span class="pill bad"><i class="bx bx-x-circle"></i> Not accepted</span> @break
+                @default          <span class="pill warn"><i class="bx bx-error-circle"></i> Not uploaded</span>
+            @endswitch
+        </div>
+        @if ($permit === 'none')
+            <p class="text">Upload a clear photo or PDF of your business permit. The RSYNC team will check it to confirm that you can rent out rooms.</p>
+        @elseif ($permit === 'pending')
+            <p class="text">Uploaded on {{ $user->business_permit_uploaded_at?->format('M j, Y') }}. The RSYNC team will review it soon.</p>
+        @elseif ($permit === 'approved')
+            <p class="text">Your business permit was checked and approved.</p>
+        @else
+            <p class="text">Your permit could not be accepted. Please upload a clearer or updated copy.</p>
+        @endif
+        @if ($user->business_permit)
+            <p class="text"><a href="{{ route('account.permit.show', $user->user_id) }}" target="_blank" rel="noopener" class="file-link"><i class="bx bx-show"></i> View uploaded permit</a></p>
+        @endif
+        <form method="POST" action="{{ route('account.permit') }}" enctype="multipart/form-data" class="upload-row">
+            @csrf
+            <input type="file" name="permit" accept="image/jpeg,image/png,image/webp,application/pdf" required>
+            <button type="submit" class="btn btn-dark">{{ $user->business_permit ? 'Upload new copy' : 'Upload permit' }}</button>
+        </form>
+        @if ($pm->has('permit'))<p class="f-err">{{ $pm->first('permit') }}</p>@endif
+        <p class="hint">JPG, PNG, WEBP or PDF, up to 5 MB. Only you and the RSYNC admins can see this file.@if ($user->business_permit) Uploading a new copy sends it for review again.@endif</p>
+    </section>
+    @endif
 
     {{-- ── Password ── --}}
     <section class="card">
