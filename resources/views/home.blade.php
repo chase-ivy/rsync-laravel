@@ -76,7 +76,7 @@ data-dashboard-url="{{ route('tenant.dashboard') }}"
     <div class="plans-grid">
         <div class="plan-card plan-starter">
             <div class="plan-card-top">
-                <div class="plan-icon-wrap starter"><i class='bx bx-leaf'></i></div>
+               
                 <div>
                     <h3 class="plan-name">Starter</h3>
                     <p class="plan-desc">A lean option for first-time landlords.</p>
@@ -101,7 +101,7 @@ data-dashboard-url="{{ route('tenant.dashboard') }}"
 
         <div class="plan-card featured-plan">
             <div class="plan-card-top">
-                <div class="plan-icon-wrap pro"><i class='bx bx-store'></i></div>
+            
                 <div>
                     <h3 class="plan-name">Professional</h3>
                     <p class="plan-desc">For growing portfolios and daily operations.</p>
@@ -126,7 +126,6 @@ data-dashboard-url="{{ route('tenant.dashboard') }}"
 
         <div class="plan-card">
             <div class="plan-card-top">
-                <div class="plan-icon-wrap ent"><i class='bx bxs-crown'></i></div>
                 <div>
                     <h3 class="plan-name">Enterprise</h3>
                     <p class="plan-desc">For premium landlords with large portfolios.</p>
