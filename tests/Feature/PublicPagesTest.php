@@ -21,6 +21,7 @@ class PublicPagesTest extends TestCase
     private function user(string $email, string $role = 'tenant', bool $verified = true): User
     {
         $user = User::create(['name' => ucfirst($role) . ' User', 'age' => 21, 'email' => $email, 'password' => Hash::make('x'), 'role' => $role]);
+        $user->forceFill(['birthday' => '2004-01-01', 'contact_number' => '09171234567'])->save();   // complete profile
         if ($verified) {
             $user->markEmailAsVerified();
         }
@@ -187,7 +188,7 @@ class PublicPagesTest extends TestCase
 
         $this->actingAs($tenant)->get('/rooms/' . $room->room_id)->assertSee('Apply Now');
 
-               // Someone else takes the only slot.
+        // Someone else takes the only slot.
         Tenancy::create(['user_id' => $this->user('other@gmail.com')->user_id, 'room_id' => $room->room_id, 'start_date' => '2026-01-01', 'end_date' => '2026-12-01', 'status' => 'Active']);
         $this->actingAs($tenant)->get('/rooms/' . $room->room_id)->assertSee('Room Full')->assertDontSee('Apply Now');
     }
@@ -243,6 +244,17 @@ class PublicPagesTest extends TestCase
 
         $this->actingAs($tenant)->post('/rooms/apply', ['room_id' => $room->room_id])
             ->assertOk()->assertExactJson(['status' => 'error', 'message' => 'You already applied for this room']);
+    }
+
+    public function test_tenant_must_complete_details_before_applying(): void
+    {
+        $tenant = $this->user('t@gmail.com');
+        $tenant->forceFill(['contact_number' => null])->save();
+        $room = $this->room('Room 201', 4500);
+
+        $this->actingAs($tenant)->post('/rooms/apply', ['room_id' => $room->room_id])
+            ->assertExactJson(['status' => 'error', 'message' => 'Please complete your details (name, birthday and contact number) on your Account page before applying.']);
+        $this->assertSame(0, \App\Models\RoomApplication::count());
     }
 
     public function test_unverified_tenant_must_verify_before_applying(): void

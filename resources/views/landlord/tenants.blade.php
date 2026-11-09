@@ -27,7 +27,7 @@
 
     <div class="tbl-wrap">
     <table>
-        <thead><tr><th>Tenant</th><th>Room</th><th>Contract</th><th>Status</th><th>Payment</th></tr></thead>
+        <thead><tr><th>Tenant</th><th>Room</th><th>Contract</th><th>Status</th><th>Payment</th><th>Contact</th><th>Valid ID</th></tr></thead>
         <tbody>
         @forelse ($tenancies as $t)
             @php
@@ -60,9 +60,24 @@
                     @endif
                 </td>
                 <td>{{ $t->payment_status ?? 'Registered' }}</td>
+                <td class="t-contact">
+                    @if ($t->user?->contact_number)<div><i class="bx bx-phone"></i> {{ $t->user->contact_number }}</div>@endif
+                    @if ($t->user?->emergency_contact_number)
+                        <div class="t-sub">Emergency: {{ $t->user->emergency_contact_name }} ({{ $t->user->emergency_contact_relationship }}) · {{ $t->user->emergency_contact_number }}</div>
+                    @endif
+                    @if ($t->user?->social_media_url)<div class="t-sub"><a href="{{ $t->user->social_media_url }}" target="_blank" rel="noopener nofollow">Social media</a></div>@endif
+                    @if (! $t->user?->contact_number && ! $t->user?->emergency_contact_number)<span class="t-sub">Not filled in yet</span>@endif
+                </td>
+                <td>
+                    @if ($t->user?->valid_id)
+                        <a href="{{ route('account.valid-id.show', $t->user->user_id) }}" target="_blank" rel="noopener">View ID</a>
+                    @else
+                        <span class="t-sub">Not uploaded</span>
+                    @endif
+                </td>
             </tr>
         @empty
-            <tr><td colspan="5" class="t-empty">No current tenants yet. Assign tenants to your rooms from the Dashboard.</td></tr>
+            <tr><td colspan="7" class="t-empty">No current tenants yet. Assign tenants to your rooms from the Dashboard.</td></tr>
         @endforelse
         </tbody>
     </table>

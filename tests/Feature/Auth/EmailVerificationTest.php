@@ -39,7 +39,7 @@ class EmailVerificationTest extends TestCase
         Notification::fake();
 
         $this->post('/register', [
-            'name' => 'Kobe', 'age' => 21, 'email' => 'kobe@gmail.com', 'password' => 'secret123', 'role' => 'tenant',
+            'email' => 'kobe@gmail.com', 'password' => 'Secret123', 'password_confirmation' => 'Secret123', 'role' => 'tenant',
         ]);
 
         $user = User::where('email', 'kobe@gmail.com')->first();

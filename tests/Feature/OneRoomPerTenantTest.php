@@ -21,6 +21,7 @@ class OneRoomPerTenantTest extends TestCase
     private function user(string $email, string $role = 'tenant'): User
     {
         $user = User::create(['name' => 'Kobe', 'age' => 21, 'email' => $email, 'password' => Hash::make('x'), 'role' => $role]);
+        $user->forceFill(['birthday' => '2004-01-01', 'contact_number' => '09171234567'])->save();   // complete profile
         $user->markEmailAsVerified();
 
         return $user;

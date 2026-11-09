@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -49,9 +50,61 @@ class User extends Authenticatable implements MustVerifyEmail
             'verified' => 'boolean',
             'verification_rejected_at' => 'datetime',
             'business_permit_uploaded_at' => 'datetime',
+            'birthday' => 'date:Y-m-d',
+            'valid_id_uploaded_at' => 'datetime',
             'email_verified_at' => 'datetime',
             'created_at' => 'datetime',
         ];
+    }
+
+    /** Who an emergency contact can be (Account page dropdown). */
+    public const RELATIONSHIPS = ['Mother', 'Father', 'Guardian', 'Sibling', 'Spouse', 'Relative', 'Other'];
+
+    /**
+     * New accounts have no name until they fill in the Account page. Anywhere a name is shown,
+     * fall back to the first part of the email ("kobe" for kobe@gmail.com).
+     * The real (possibly empty) value is $user->getRawOriginal('name').
+     */
+    protected function name(): Attribute
+    {
+        return Attribute::get(function ($value) {
+            if (filled($value)) {
+                return $value;
+            }
+            $email = $this->attributes['email'] ?? null;
+
+            return $email ? \Illuminate\Support\Str::before($email, '@') : 'User #' . ($this->attributes['user_id'] ?? '?');
+        });
+    }
+
+    /** Age in years from the birthday (or the old age column for older accounts). */
+    public function ageYears(): ?int
+    {
+        return $this->birthday ? (int) $this->birthday->age : ($this->attributes['age'] ?? null);
+    }
+
+    /** Name, birthday and contact number are filled in (needed before applying for a room). */
+    public function hasCompleteProfile(): bool
+    {
+        return filled($this->getRawOriginal('name')) && $this->birthday !== null && filled($this->contact_number);
+    }
+
+    /**
+     * Who may open this user's private files (valid ID): the user, admins, and a landlord/sublessor
+     * this tenant rents from or applied to.
+     */
+    public function privateFilesVisibleTo(User $viewer): bool
+    {
+        if ((int) $viewer->user_id === (int) $this->user_id || $viewer->role === 'admin') {
+            return true;
+        }
+        if (! $viewer->isOwner()) {
+            return false;
+        }
+        $mine = fn ($q) => $q->where('owner_id', $viewer->user_id);
+
+        return $this->tenancies()->whereHas('room', $mine)->exists()
+            || $this->applications()->whereHas('room', $mine)->exists();
     }
 
     /** No remember_token column: tell Laravel not to use one. */

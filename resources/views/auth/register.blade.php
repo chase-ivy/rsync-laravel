@@ -13,27 +13,11 @@
     @csrf
     <div class="box-logo">RS<span>Y</span>NC</div>
     <h2>Create account</h2>
-    <p class="sub">Join RSYNC and manage your boarding experience</p>
+    <p class="sub">Join RSYNC and manage your boarding experience. You can add your name and other details after verifying your email.</p>
 
     @if (!empty($error))
         <div class="err">{{ $error }}</div>
     @endif
-
-    <div class="field">
-        <label>Full Name</label>
-        <div class="inp-wrap">
-            <input type="text" name="name" placeholder="Your Name" required value="{{ request('name', '') }}">
-            <i class="bx bx-user"></i>
-        </div>
-    </div>
-
-    <div class="field">
-        <label>Age</label>
-        <div class="inp-wrap">
-            <input type="number" name="age" placeholder="Your Age" min="1" max="120" required value="{{ request('age', '') }}">
-            <i class="bx bx-calendar"></i>
-        </div>
-    </div>
 
     <div class="field">
         <label>Email</label>
@@ -46,8 +30,17 @@
     <div class="field">
         <label>Password</label>
         <div class="inp-wrap">
-            <input type="password" id="pw" name="password" placeholder="••••••••" required>
+            <input type="password" id="pw" name="password" placeholder="••••••••" minlength="8" required autocomplete="new-password">
             <i class="bx bx-show clickable" onclick="togglePw()"></i>
+        </div>
+        <p class="pw-hint">{{ \App\Support\PasswordRules::HINT }}</p>
+    </div>
+
+    <div class="field">
+        <label>Confirm Password</label>
+        <div class="inp-wrap">
+            <input type="password" name="password_confirmation" placeholder="••••••••" minlength="8" required autocomplete="new-password">
+            <i class="bx bx-lock-alt"></i>
         </div>
     </div>
 

@@ -30,14 +30,20 @@ class RoomApplicationController extends Controller
             return $this->error('Please verify your email first. Check your inbox for the link.');
         }
 
-                // Business rule: a tenant rents one room at a time.
+        // The landlord needs to know who is applying.
+        if (! $user->hasCompleteProfile()) {
+            return $this->error('Please complete your details (name, birthday and contact number) on your Account page before applying.');
+        }
+
+        // Business rule: a tenant rents one room at a time.
         if ($current = $user->activeTenancy()) {
             $name = $current->room?->room_name ?? 'a room';
             return $this->error("You already have a room ({$name}). You can apply for another room after your current stay ends.");
         }
 
         $roomId = $request->input('room_id');
-        if (! ctype_digit((string) $roomId) || ! Room::whereKey((int) $roomId)->exists()) {
+        $room = ctype_digit((string) $roomId) ? Room::find((int) $roomId) : null;
+        if (! $room) {
             return $this->error('Room not found');
         }
 

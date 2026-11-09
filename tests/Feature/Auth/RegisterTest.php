@@ -19,10 +19,9 @@ class RegisterTest extends TestCase
     private function form(array $overrides = []): array
     {
         return array_merge([
-            'name' => 'Kobe Bryant',
-            'age' => 21,
             'email' => 'kobe@gmail.com',
-            'password' => 'secret123',
+            'password' => 'Secret123',
+            'password_confirmation' => 'Secret123',
             'role' => 'tenant',
         ], $overrides);
     }
@@ -56,11 +55,11 @@ class RegisterTest extends TestCase
 
         $user = DB::table('users')->where('email', 'kobe@gmail.com')->first();
         $this->assertNotNull($user);
-        $this->assertSame('Kobe Bryant', $user->name);
-        $this->assertSame(21, (int) $user->age);
+        $this->assertNull($user->name);   // name and birthday are filled in later on the Account page
+        $this->assertNull($user->age);
         $this->assertSame('tenant', $user->role);
         $this->assertNull($user->email_verified_at);
-        $this->assertTrue(Hash::check('secret123', $user->password));
+        $this->assertTrue(Hash::check('Secret123', $user->password));
         // Same bcrypt format as the old app. Cost comes from BCRYPT_ROUNDS (10 in .env; tests use 4 for speed).
         $this->assertSame(
             sprintf('$2y$%02d$', config('hashing.bcrypt.rounds')),
@@ -74,7 +73,7 @@ class RegisterTest extends TestCase
     {
         $this->post('/register', $this->form());
 
-        $this->post('/login', ['email' => 'kobe@gmail.com', 'password' => 'secret123'])
+        $this->post('/login', ['email' => 'kobe@gmail.com', 'password' => 'Secret123'])
             ->assertRedirect(route('tenant.dashboard'));
     }
 
@@ -82,10 +81,10 @@ class RegisterTest extends TestCase
     {
         $this->post('/register', $this->form());
 
-        $this->post('/register', $this->form(['email' => 'KOBE@Gmail.com', 'name' => 'Second Kobe']))
+        $this->post('/register', $this->form(['email' => 'KOBE@Gmail.com']))
             ->assertOk()
             ->assertSee('Email already exists.')
-            ->assertSee('value="Second Kobe"', false);
+            ->assertSee('value="KOBE@Gmail.com"', false);
 
         $this->assertSame(1, DB::table('users')->count());
     }
@@ -101,7 +100,7 @@ class RegisterTest extends TestCase
 
     public function test_missing_or_bad_fields_are_rejected(): void
     {
-        foreach ([['name' => ''], ['age' => 0], ['age' => 'abc'], ['email' => 'not-an-email'], ['password' => '']] as $bad) {
+        foreach ([['email' => ''], ['email' => 'not-an-email'], ['password' => ''], ['role' => '']] as $bad) {
             $this->post('/register', $this->form($bad))
                 ->assertOk()
                 ->assertSee('<div class="err">', false);
@@ -112,9 +111,38 @@ class RegisterTest extends TestCase
 
     public function test_form_values_are_escaped(): void
     {
-        $this->post('/register', $this->form(['name' => '"><script>x</script>', 'email' => 'bad']))
+        $this->post('/register', $this->form(['email' => '"><script>x</script>']))
             ->assertOk()
             ->assertDontSee('<script>x</script>', false);
+    }
+
+    public function test_register_asks_only_for_email_password_and_role(): void
+    {
+        $this->get('/register')
+            ->assertSee('name="email"', false)
+            ->assertSee('name="password"', false)
+            ->assertSee('name="password_confirmation"', false)
+            ->assertSee('name="role"', false)
+            ->assertDontSee('name="name"', false)
+            ->assertDontSee('name="age"', false);
+    }
+
+    public function test_password_must_be_strong(): void
+    {
+        $weak = [
+            'Short1' => 'at least 8 characters',
+            'secret123' => 'uppercase and one lowercase',
+            'SECRET123' => 'uppercase and one lowercase',
+            'SecretPass' => 'at least one number',
+        ];
+        foreach ($weak as $password => $message) {
+            $this->post('/register', $this->form(['password' => $password, 'password_confirmation' => $password]))
+                ->assertOk()
+                ->assertSee($message);
+        }
+        $this->post('/register', $this->form(['password_confirmation' => 'Different123']))->assertSee('The passwords do not match.');
+
+        $this->assertSame(0, DB::table('users')->count());
     }
 
     public function test_login_page_links_to_register(): void
@@ -133,7 +161,7 @@ class RegisterTest extends TestCase
         $this->assertSame('landlord', $query['role'] ?? null);
     }
 
-        // ---- Plan choice for landlords and sublessors ----
+    // ---- Plan choice for landlords and sublessors ----
 
     public function test_plan_choice_is_on_the_page_but_hidden_until_landlord_or_sublessor(): void
     {
@@ -150,6 +178,7 @@ class RegisterTest extends TestCase
             $this->post('/register', $this->form(['role' => $role, 'email' => "$role@gmail.com"]))
                 ->assertOk()
                 ->assertSee('Please choose a plan.')
+                // the plan choice stays open so the user can fix it
                 ->assertDontSee('id="plan-field" hidden', false)
                 ->assertSee('<select name="plan" id="plan" required>', false);
         }
@@ -185,7 +214,7 @@ class RegisterTest extends TestCase
 
     public function test_error_keeps_the_chosen_role_and_plan_in_the_dropdowns(): void
     {
-        $this->post('/register', $this->form(['role' => 'sublessor', 'plan' => 'Professional', 'age' => 0]))
+        $this->post('/register', $this->form(['role' => 'sublessor', 'plan' => 'Professional', 'email' => 'bad']))
             ->assertOk()
             ->assertSee('<select name="role" required>', false)
             ->assertSee('<option value="sublessor" selected>', false)
@@ -195,7 +224,7 @@ class RegisterTest extends TestCase
 
     public function test_error_after_a_pricing_button_keeps_the_locked_plan(): void
     {
-        $this->post('/register', $this->form(['role' => 'landlord', 'plan' => 'Enterprise', 'plan_locked' => '1', 'age' => 0]))
+        $this->post('/register', $this->form(['role' => 'landlord', 'plan' => 'Enterprise', 'plan_locked' => '1', 'email' => 'bad']))
             ->assertOk()
             ->assertSee('Selected plan')
             ->assertSee('<input type="hidden" name="plan" value="Enterprise">', false)

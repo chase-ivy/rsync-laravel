@@ -90,15 +90,15 @@ class ForgotPasswordTest extends TestCase
         $this->post('/verify-otp', ['otp' => $otp])->assertRedirect(route('password.reset'));
         $this->get('/reset-password')->assertOk()->assertSee('Choose a new password');
 
-        $this->post('/reset-password', ['password' => 'new-password', 'password_confirmation' => 'new-password'])
+        $this->post('/reset-password', ['password' => 'NewPass123', 'password_confirmation' => 'NewPass123'])
             ->assertRedirect(route('login'));
 
         $this->get('/login')->assertSee('Password updated. Please sign in.');
-        $this->assertTrue(Hash::check('new-password', $user->fresh()->password));
+        $this->assertTrue(Hash::check('NewPass123', $user->fresh()->password));
         $this->assertTrue(PasswordReset::first()->used);
         $this->assertTrue($user->fresh()->hasVerifiedEmail(), 'getting the code proves the email');
 
-        $this->post('/login', ['email' => 'kobe@gmail.com', 'password' => 'new-password'])
+        $this->post('/login', ['email' => 'kobe@gmail.com', 'password' => 'NewPass123'])
             ->assertRedirect(route('tenant.dashboard'));
     }
 
@@ -143,7 +143,7 @@ class ForgotPasswordTest extends TestCase
         $this->user();
         $otp = $this->requestCode();
         $this->post('/verify-otp', ['otp' => $otp]);
-        $this->post('/reset-password', ['password' => 'new-password', 'password_confirmation' => 'new-password']);
+        $this->post('/reset-password', ['password' => 'NewPass123', 'password_confirmation' => 'NewPass123']);
 
         $this->withSession(['reset_email' => 'kobe@gmail.com'])
             ->post('/verify-otp', ['otp' => $otp])
@@ -155,6 +155,8 @@ class ForgotPasswordTest extends TestCase
         $user = $this->user();
         $this->post('/verify-otp', ['otp' => $this->requestCode()]);
 
+        $this->post('/reset-password', ['password' => 'weakpass', 'password_confirmation' => 'weakpass'])
+            ->assertSee('uppercase and one lowercase');   // same strength rule as registration
         $this->post('/reset-password', ['password' => 'aaa', 'password_confirmation' => 'bbb'])
             ->assertOk()->assertSee('Passwords do not match.');
         $this->post('/reset-password', ['password' => '', 'password_confirmation' => ''])

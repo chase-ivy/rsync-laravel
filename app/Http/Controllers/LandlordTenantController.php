@@ -20,7 +20,7 @@ class LandlordTenantController extends Controller
     /** GET /landlord/tenants: everyone currently renting one of my rooms (photo, name, room, contract, status). */
     public function page(Request $request)
     {
-        $tenancies = Tenancy::with(['user:user_id,name,email,profile_photo', 'room:room_id,room_name'])
+        $tenancies = Tenancy::with(['user:user_id,name,email,profile_photo,contact_number,emergency_contact_name,emergency_contact_relationship,emergency_contact_number,social_media_url,valid_id', 'room:room_id,room_name'])
             ->where('status', 'Active')
             ->whereHas('room', fn ($q) => $q->where('owner_id', $request->user()->user_id))
             ->get()

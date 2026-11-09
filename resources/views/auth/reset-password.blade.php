@@ -17,9 +17,10 @@
         <div class="field">
             <label>New Password</label>
             <div class="inp-wrap">
-                <input type="password" id="pw" name="password" placeholder="••••••••" required autofocus>
+                <input type="password" id="pw" name="password" placeholder="••••••••" minlength="8" required autofocus autocomplete="new-password">
                 <i class="bx bx-show" onclick="togglePw()" style="cursor:pointer"></i>
             </div>
+            <p class="pw-hint">{{ \App\Support\PasswordRules::HINT }}</p>
         </div>
         <div class="field">
             <label>Confirm New Password</label>

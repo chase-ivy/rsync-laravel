@@ -61,58 +61,108 @@ class AccountTest extends TestCase
         Notification::assertSentTo($user, VerifyEmail::class);
     }
 
-    public function test_update_name_and_age(): void
+    private function details(array $overrides = []): array
     {
+        return array_merge([
+            'name' => 'Kobe Bryant',
+            'birthday' => '2004-08-23',
+            'contact_number' => '0917 123 4567',
+            'emergency_contact_name' => 'Pamela Bryant',
+            'emergency_contact_relationship' => 'Mother',
+            'emergency_contact_number' => '09181234567',
+            'social_media_url' => 'https://facebook.com/kobe.bryant',
+        ], $overrides);
+    }
+
+    public function test_tenant_saves_personal_details_and_emergency_contact(): void
+    {
+        $this->travelTo('2026-10-21 10:00:00');
         $user = $this->user();
 
-        $this->actingAs($user)->from('/account')
-            ->post('/account/profile', ['name' => 'Kobe Bryant', 'age' => 22, 'email' => 'kobe@gmail.com'])
+        $this->actingAs($user)->from('/account')->post('/account/profile', $this->details())
             ->assertRedirect('/account')
             ->assertSessionHas('msg', 'Your details were saved.');
 
         $user->refresh();
         $this->assertSame('Kobe Bryant', $user->name);
-        $this->assertSame(22, $user->age);
-        $this->assertTrue($user->hasVerifiedEmail());   // same email: still verified
+        $this->assertSame('2004-08-23', $user->birthday->toDateString());
+        $this->assertSame(22, $user->ageYears());
+        $this->assertSame('09171234567', $user->contact_number);   // spaces removed
+        $this->assertSame('Pamela Bryant', $user->emergency_contact_name);
+        $this->assertSame('Mother', $user->emergency_contact_relationship);
+        $this->assertSame('09181234567', $user->emergency_contact_number);
+        $this->assertSame('https://facebook.com/kobe.bryant', $user->social_media_url);
+        $this->assertTrue($user->hasCompleteProfile());
     }
 
-    public function test_email_change_needs_the_current_password(): void
+    public function test_details_are_validated(): void
+    {
+        $user = $this->user();
+        $bad = [
+            ['name' => 'K'],                                   // too short
+            ['name' => str_repeat('a', 101)],                  // too long
+            ['name' => 'Kobe123'],                             // numbers
+            ['birthday' => '2999-01-01'],                      // future
+            ['contact_number' => '12345'],                     // not a PH mobile number
+            ['emergency_contact_relationship' => 'Friend'],    // not in the list
+            ['emergency_contact_number' => '09171234567'],     // same as own number
+            ['social_media_url' => 'not a link'],
+        ];
+        foreach ($bad as $fields) {
+            $this->actingAs($user)->from('/account')->post('/account/profile', $this->details($fields))
+                ->assertSessionHasErrorsIn('profile', [array_key_first($fields)]);
+        }
+
+        $this->assertSame('Kobe', $user->fresh()->name);   // nothing was saved
+    }
+
+    public function test_landlords_only_fill_in_name_birthday_and_contact(): void
+    {
+        $landlord = $this->user('l@gmail.com', 'landlord');
+
+        $this->actingAs($landlord)->get('/account')->assertDontSee('Emergency contact')->assertDontSee('Valid ID');
+        $this->post('/account/profile', ['name' => 'Lee Landlord', 'birthday' => '1985-01-01', 'contact_number' => '+639171234567'])
+            ->assertSessionHas('msg', 'Your details were saved.');
+
+        $this->assertSame('Lee Landlord', $landlord->fresh()->name);
+    }
+
+    public function test_details_need_a_verified_email_first(): void
+    {
+        $user = $this->user('u@gmail.com', 'tenant', false);
+
+        $this->actingAs($user)->get('/account')->assertSee('Verify your email to fill in')->assertDontSee('name="birthday"', false);
+        $this->post('/account/profile', $this->details())->assertRedirect(route('verification.notice'));
+    }
+
+    public function test_email_cannot_be_changed(): void
     {
         $user = $this->user();
 
-        $this->actingAs($user)->from('/account')
-            ->post('/account/profile', ['name' => 'Kobe', 'age' => 21, 'email' => 'new@gmail.com', 'current_password' => 'wrong'])
-            ->assertRedirect('/account')
-            ->assertSessionHasErrorsIn('profile', ['current_password']);
+        $this->actingAs($user)->get('/account')->assertSee('kobe@gmail.com')->assertDontSee('name="email"', false);
+        $this->post('/account/profile', $this->details(['email' => 'other@gmail.com']));
 
         $this->assertSame('kobe@gmail.com', $user->fresh()->email);
     }
 
-    public function test_email_change_must_be_verified_again(): void
+    public function test_valid_id_upload_and_who_can_see_it(): void
     {
-        Notification::fake();
-        $user = $this->user();
+        \Illuminate\Support\Facades\Storage::fake('local');
+        $tenant = $this->user();
+        $this->actingAs($tenant)->post('/account/valid-id', ['valid_id' => \Illuminate\Http\UploadedFile::fake()->image('id.jpg')])
+            ->assertSessionHas('msg', 'Your valid ID was uploaded.');
+        $url = '/account/valid-id/' . $tenant->user_id;
 
-        $this->actingAs($user)->from('/account')
-            ->post('/account/profile', ['name' => 'Kobe', 'age' => 21, 'email' => 'new@gmail.com', 'current_password' => 'secret123'])
-            ->assertRedirect('/account');
+        $landlord = $this->user('l@gmail.com', 'landlord');
+        $room = \App\Models\Room::create(['owner_id' => $landlord->user_id, 'room_name' => 'Room 201', 'price' => 4500, 'max_occupants' => 2]);
 
-        $user->refresh();
-        $this->assertSame('new@gmail.com', $user->email);
-        $this->assertFalse($user->hasVerifiedEmail());
-        Notification::assertSentTo($user, VerifyEmail::class);
-    }
-
-    public function test_email_already_used_is_rejected(): void
-    {
-        $this->user('taken@gmail.com');
-        $user = $this->user();
-
-        $this->actingAs($user)->from('/account')
-            ->post('/account/profile', ['name' => 'Kobe', 'age' => 21, 'email' => 'TAKEN@gmail.com', 'current_password' => 'secret123'])
-            ->assertSessionHasErrorsIn('profile', ['email']);
-
-        $this->assertSame('kobe@gmail.com', $user->fresh()->email);
+        $this->get($url)->assertOk();                                                     // the tenant
+        $this->actingAs($this->user('a@gmail.com', 'admin'))->get($url)->assertOk();     // an admin
+        $this->actingAs($landlord)->get($url)->assertForbidden();                         // not their tenant yet
+        \App\Models\RoomApplication::create(['user_id' => $tenant->user_id, 'room_id' => $room->room_id, 'status' => 'Pending', 'applied_at' => now()]);
+        $this->actingAs($landlord)->get($url)->assertOk();                                // applied to their room
+        $this->actingAs($this->user('o@gmail.com', 'landlord'))->get($url)->assertForbidden();   // another landlord
+        $this->actingAs($this->user('t2@gmail.com'))->get($url)->assertForbidden();     // another tenant
     }
 
     public function test_change_password(): void
@@ -120,11 +170,11 @@ class AccountTest extends TestCase
         $user = $this->user();
 
         $this->actingAs($user)->from('/account')
-            ->post('/account/password', ['current_password' => 'secret123', 'password' => 'newpass456', 'password_confirmation' => 'newpass456'])
+            ->post('/account/password', ['current_password' => 'secret123', 'password' => 'NewPass456', 'password_confirmation' => 'NewPass456'])
             ->assertRedirect('/account')
             ->assertSessionHas('msg', 'Your password was changed.');
 
-        $this->assertTrue(Hash::check('newpass456', $user->fresh()->password));
+        $this->assertTrue(Hash::check('NewPass456', $user->fresh()->password));
     }
 
     public function test_change_password_rejects_bad_input(): void
@@ -132,11 +182,13 @@ class AccountTest extends TestCase
         $user = $this->user();
         $post = fn (array $data) => $this->actingAs($user)->from('/account')->post('/account/password', $data);
 
-        $post(['current_password' => 'wrong', 'password' => 'newpass456', 'password_confirmation' => 'newpass456'])
+        $post(['current_password' => 'wrong', 'password' => 'NewPass456', 'password_confirmation' => 'NewPass456'])
             ->assertSessionHasErrorsIn('password', ['current_password']);
-        $post(['current_password' => 'secret123', 'password' => 'short', 'password_confirmation' => 'short'])
-            ->assertSessionHasErrorsIn('password', ['password']);
-        $post(['current_password' => 'secret123', 'password' => 'newpass456', 'password_confirmation' => 'different1'])
+        foreach (['Short1', 'newpass456', 'NEWPASS456', 'NewPassword'] as $weak) {
+            $post(['current_password' => 'secret123', 'password' => $weak, 'password_confirmation' => $weak])
+                ->assertSessionHasErrorsIn('password', ['password']);
+        }
+        $post(['current_password' => 'secret123', 'password' => 'NewPass456', 'password_confirmation' => 'Different1'])
             ->assertSessionHasErrorsIn('password', ['password']);
 
         $this->assertTrue(Hash::check('secret123', $user->fresh()->password));

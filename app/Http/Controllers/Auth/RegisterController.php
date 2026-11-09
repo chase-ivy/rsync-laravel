@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\PasswordRules;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -50,17 +51,19 @@ class RegisterController extends Controller
         ]);
 
         // Server-side checks (security fix S6: the old page only checked in the browser).
+        // Only email, password and role are asked here; name and birthday are added later on the Account page.
         $validator = Validator::make($request->all(), [
-            'name' => ['required', 'string', 'max:100'],
-            'age' => ['required', 'integer', 'min:1', 'max:120'],
             'email' => ['required', 'email', 'max:100'],
-            'password' => ['required', 'string'],
+            'password' => PasswordRules::rules(),
             'role' => ['required', 'in:tenant,landlord,sublessor'],
             // Landlords and sublessors must pick a plan; tenants don't have one.
             'plan' => ['required_if:role,landlord,sublessor', 'nullable', 'in:' . implode(',', self::PLANS)],
         ], [
+            'email.required' => 'Please enter your email.',
+            'email.email' => 'Please enter a valid email address.',
+            'role.required' => 'Please choose a role.',
             'plan.required_if' => 'Please choose a plan.',
-        ]);
+        ] + PasswordRules::messages());
         if ($validator->fails()) {
             return $page($validator->errors()->first());
         }
@@ -74,8 +77,6 @@ class RegisterController extends Controller
 
         try {
             $user = User::create([
-                'name' => $request->input('name'),
-                'age' => (int) $request->input('age'),
                 'email' => $email,
                 'password' => Hash::make((string) $request->input('password')),
                 'role' => $role,
@@ -85,7 +86,7 @@ class RegisterController extends Controller
             return $page('Something went wrong. Please try again.');
         }
 
-               // Laravel sends the email-verification link when this event fires (Part C3).
+        // Laravel sends the email-verification link when this event fires (Part C3).
         event(new Registered($user));
 
         return redirect()->to(route('login') . '?registered=1')

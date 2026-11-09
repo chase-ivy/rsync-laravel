@@ -48,15 +48,21 @@ Route::middleware('auth')->group(function () {
 Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
     ->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
 
-// Account page (new): details, email verification and password in one place. Any logged-in user.
+// Account page: details, email verification and password in one place. Any logged-in user.
 Route::middleware('auth')->group(function () {
     Route::get('/account', [AccountController::class, 'show'])->name('account');
-    Route::post('/account/profile', [AccountController::class, 'updateProfile'])->middleware('throttle:10,1')->name('account.profile');
     Route::post('/account/password', [AccountController::class, 'updatePassword'])->middleware('throttle:6,1')->name('account.password');
-    Route::post('/account/photo', [AccountController::class, 'updatePhoto'])->middleware('throttle:10,1')->name('account.photo');
-    Route::post('/account/photo/remove', [AccountController::class, 'removePhoto'])->name('account.photo.remove');
-    Route::post('/account/permit', [AccountController::class, 'uploadPermit'])->middleware('throttle:10,1')->name('account.permit');
     Route::get('/account/permit/{id}', [AccountController::class, 'permit'])->whereNumber('id')->name('account.permit.show');   // owner or admin only
+    Route::get('/account/valid-id/{id}', [AccountController::class, 'validId'])->whereNumber('id')->name('account.valid-id.show');   // tenant, admin, their landlord
+
+    // Filling in your details needs a verified email first.
+    Route::middleware('verified')->group(function () {
+        Route::post('/account/profile', [AccountController::class, 'updateProfile'])->middleware('throttle:10,1')->name('account.profile');
+        Route::post('/account/photo', [AccountController::class, 'updatePhoto'])->middleware('throttle:10,1')->name('account.photo');
+        Route::post('/account/photo/remove', [AccountController::class, 'removePhoto'])->name('account.photo.remove');
+        Route::post('/account/permit', [AccountController::class, 'uploadPermit'])->middleware('throttle:10,1')->name('account.permit');
+        Route::post('/account/valid-id', [AccountController::class, 'uploadValidId'])->middleware('throttle:10,1')->name('account.valid-id');
+    });
 });
 
 // Forgot password (forgot_password.php + the missing verify_otp step + new password)

@@ -35,8 +35,8 @@ class BrevoMailTest extends TestCase
     {
         Http::fake([self::API => Http::response(['messageId' => '<abc@brevo>'], 201)]);
 
-        $this->post('/register', ['name' => 'Juan', 'age' => 21, 'email' => 'juan@gmail.com', 'password' => 'secret123',
-            'role' => 'tenant', 'gender' => 'Male'])->assertRedirect();
+        $this->post('/register', ['email' => 'juan@gmail.com', 'password' => 'Secret123', 'password_confirmation' => 'Secret123',
+            'role' => 'tenant'])->assertRedirect();
 
         Http::assertSent(function (HttpRequest $r) {
             return $r->url() === self::API

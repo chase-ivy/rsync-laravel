@@ -168,6 +168,13 @@ class ForgotPasswordController extends Controller
         if ($password !== (string) $request->input('password_confirmation', '')) {
             return view('auth.reset-password', ['error' => 'Passwords do not match.']);
         }
+        // Same strength rule as registration: 8+ characters, upper and lower case letters, a number.
+        $strength = \Illuminate\Support\Facades\Validator::make($request->only('password', 'password_confirmation'), [
+            'password' => \App\Support\PasswordRules::rules(),
+        ], \App\Support\PasswordRules::messages());
+        if ($strength->fails()) {
+            return view('auth.reset-password', ['error' => $strength->errors()->first()]);
+        }
 
         $user = User::where('email', $email)->first();
         $reset = PasswordReset::where('email', $email)->where('used', false)->latest('id')->first();

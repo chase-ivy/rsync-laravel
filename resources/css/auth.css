@@ -81,3 +81,4 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-
 
 /* Forgot password: 6-digit code box (new page, same look) */
 .otp-input{letter-spacing:.5em;font-size:20px !important;text-align:center;padding:11px 13px !important;}
+.pw-hint{font-size:11.5px;color:#8e8ea0;margin-top:5px;line-height:1.4;}

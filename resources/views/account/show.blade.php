@@ -17,6 +17,10 @@
     $pw = $errors->getBag('password');
     $ph = $errors->getBag('photo');
     $pm = $errors->getBag('permit');
+    $vi = $errors->getBag('validid');
+    $verified = $user->hasVerifiedEmail();
+    $isTenant = $user->role === 'tenant';
+    $rawName = $user->getRawOriginal('name');
 @endphp
 
 <nav>
@@ -36,6 +40,34 @@
     @if ($msg)<div class="toast {{ $isErr ? 'err' : '' }}">{{ $msg }}</div>@endif
     @if (session('status'))<div class="toast">{{ session('status') }}</div>@endif
 
+    @if ($verified && ! $user->hasCompleteProfile())
+        <div class="toast warn">Please complete your details below{{ $isTenant ? ' before applying for a room' : '' }}.</div>
+    @endif
+
+    {{-- ── Email verification (first, because everything else waits for it) ── --}}
+    <section class="card">
+        <div class="card-head">
+            <h2><i class="bx bx-envelope"></i> Email</h2>
+            @if ($verified)
+                <span class="pill ok"><i class="bx bx-check-circle"></i> Verified</span>
+            @else
+                <span class="pill warn"><i class="bx bx-error-circle"></i> Not verified</span>
+            @endif
+        </div>
+        <p class="text"><strong>{{ $user->email }}</strong></p>
+        @if ($verified)
+            <p class="text muted">Verified on {{ $user->email_verified_at->format('M j, Y') }}. Your email is your account ID, so it can't be changed.</p>
+        @else
+            <p class="text">We sent a link to this address. Open it to verify your email. After that you can fill in your details, apply for rooms and submit requests.</p>
+            <p class="text muted">No email? Check your Spam folder, or send a new link. Your email is your account ID, so it can't be changed.</p>
+            <form method="POST" action="{{ route('verification.send') }}">
+                @csrf
+                <button type="submit" class="btn btn-amber"><i class="bx bx-send"></i> Resend verification link</button>
+            </form>
+        @endif
+    </section>
+
+    @if ($verified)
     {{-- ── Profile picture ── --}}
     <section class="card">
         <div class="card-head">
@@ -45,7 +77,7 @@
             @include('partials.avatar', ['u' => $user, 'size' => 84])
             <div class="photo-body">
                 <p class="text">
-                    @if ($user->role === 'tenant')
+                    @if ($isTenant)
                         Add a clear photo of your face so your landlord can recognize you.
                     @else
                         Add a clear photo of your face so your tenants and the RSYNC team can recognize you.
@@ -68,65 +100,98 @@
         </div>
     </section>
 
-    {{-- ── Profile ── --}}
+    {{-- ── Personal details (+ emergency contact and social media for tenants) ── --}}
     <section class="card">
         <div class="card-head">
-            <h2><i class="bx bx-user"></i> Profile</h2>
+            <h2><i class="bx bx-user"></i> Personal details</h2>
             <span class="role">{{ ucfirst($user->role) }}</span>
         </div>
         <form method="POST" action="{{ route('account.profile') }}">
             @csrf
+            <div class="field">
+                <label for="name">Full name</label>
+                <input type="text" id="name" name="name" minlength="2" maxlength="100" required placeholder="e.g. Juan Dela Cruz" value="{{ old('name', $rawName) }}">
+                @if ($pe->has('name'))<p class="f-err">{{ $pe->first('name') }}</p>@endif
+            </div>
             <div class="row2">
                 <div class="field">
-                    <label for="name">Full name</label>
-                    <input type="text" id="name" name="name" maxlength="100" required value="{{ old('name', $user->name) }}">
-                    @if ($pe->has('name'))<p class="f-err">{{ $pe->first('name') }}</p>@endif
+                    <label for="birthday">Birthday</label>
+                    <input type="date" id="birthday" name="birthday" required max="{{ now()->subDay()->toDateString() }}" value="{{ old('birthday', $user->birthday?->toDateString()) }}">
+                    @if ($pe->has('birthday'))<p class="f-err">{{ $pe->first('birthday') }}</p>@endif
+                    @if ($user->birthday)<p class="hint">Age: {{ $user->ageYears() }}</p>@endif
                 </div>
                 <div class="field">
-                    <label for="age">Age</label>
-                    <input type="number" id="age" name="age" min="1" max="120" required value="{{ old('age', $user->age) }}">
-                    @if ($pe->has('age'))<p class="f-err">{{ $pe->first('age') }}</p>@endif
+                    <label for="contact_number">Contact number</label>
+                    <input type="tel" id="contact_number" name="contact_number" required placeholder="09171234567" value="{{ old('contact_number', $user->contact_number) }}">
+                    @if ($pe->has('contact_number'))<p class="f-err">{{ $pe->first('contact_number') }}</p>@endif
+                </div>
+            </div>
+
+            @if ($isTenant)
+            <div class="sub-head">Emergency contact <span class="opt">(parent or guardian)</span></div>
+            <div class="row2">
+                <div class="field">
+                    <label for="emergency_contact_name">Name</label>
+                    <input type="text" id="emergency_contact_name" name="emergency_contact_name" minlength="2" maxlength="100" required value="{{ old('emergency_contact_name', $user->emergency_contact_name) }}">
+                    @if ($pe->has('emergency_contact_name'))<p class="f-err">{{ $pe->first('emergency_contact_name') }}</p>@endif
+                </div>
+                <div class="field">
+                    <label for="emergency_contact_relationship">Relationship</label>
+                    @php $rel = old('emergency_contact_relationship', $user->emergency_contact_relationship); @endphp
+                    <select id="emergency_contact_relationship" name="emergency_contact_relationship" required>
+                        <option value="" disabled {{ $rel ? '' : 'selected' }}>Choose…</option>
+                        @foreach (\App\Models\User::RELATIONSHIPS as $r)
+                            <option value="{{ $r }}" {{ $rel === $r ? 'selected' : '' }}>{{ $r }}</option>
+                        @endforeach
+                    </select>
+                    @if ($pe->has('emergency_contact_relationship'))<p class="f-err">{{ $pe->first('emergency_contact_relationship') }}</p>@endif
                 </div>
             </div>
             <div class="field">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" maxlength="100" required value="{{ old('email', $user->email) }}">
-                @if ($pe->has('email'))<p class="f-err">{{ $pe->first('email') }}</p>@endif
-                <p class="hint">If you change your email, you will need to verify the new one.</p>
+                <label for="emergency_contact_number">Emergency contact number</label>
+                <input type="tel" id="emergency_contact_number" name="emergency_contact_number" required placeholder="09181234567" value="{{ old('emergency_contact_number', $user->emergency_contact_number) }}">
+                @if ($pe->has('emergency_contact_number'))<p class="f-err">{{ $pe->first('emergency_contact_number') }}</p>@endif
             </div>
+
             <div class="field">
-                <label for="profile_current_password">Current password <span class="opt">(only needed when changing your email)</span></label>
-                <input type="password" id="profile_current_password" name="current_password" autocomplete="current-password">
-                @if ($pe->has('current_password'))<p class="f-err">{{ $pe->first('current_password') }}</p>@endif
+                <label for="social_media_url">Social media link <span class="opt">(optional, e.g. your Facebook profile)</span></label>
+                <input type="url" id="social_media_url" name="social_media_url" maxlength="255" placeholder="https://facebook.com/your.name" value="{{ old('social_media_url', $user->social_media_url) }}">
+                @if ($pe->has('social_media_url'))<p class="f-err">{{ $pe->first('social_media_url') }}</p>@endif
             </div>
+            @endif
+
             <div class="card-foot">
                 @if ($user->created_at)<span class="since">Member since {{ $user->created_at->format('M j, Y') }}</span>@endif
-                <button type="submit" class="btn btn-dark">Save changes</button>
+                <button type="submit" class="btn btn-dark">Save details</button>
             </div>
         </form>
     </section>
 
-    {{-- ── Email verification ── --}}
+    @if ($isTenant)
+    {{-- ── Valid ID (tenants) ── --}}
     <section class="card">
         <div class="card-head">
-            <h2><i class="bx bx-envelope"></i> Email verification</h2>
-            @if ($user->hasVerifiedEmail())
-                <span class="pill ok"><i class="bx bx-check-circle"></i> Verified</span>
+            <h2><i class="bx bx-id-card"></i> Valid ID</h2>
+            @if ($user->valid_id)
+                <span class="pill ok"><i class="bx bx-check-circle"></i> Uploaded</span>
             @else
-                <span class="pill warn"><i class="bx bx-error-circle"></i> Not verified</span>
+                <span class="pill warn"><i class="bx bx-error-circle"></i> Not uploaded</span>
             @endif
         </div>
-        @if ($user->hasVerifiedEmail())
-            <p class="text"><strong>{{ $user->email }}</strong> was verified on {{ $user->email_verified_at->format('M j, Y') }}. You can use all features.</p>
-        @else
-            <p class="text">We sent a link to <strong>{{ $user->email }}</strong>. Open it to verify your email. Until then you can look around, but you can't apply for rooms or submit requests.</p>
-            <p class="text muted">No email? Check your Spam folder, or send a new link. Wrong email? Fix it in Profile above.</p>
-            <form method="POST" action="{{ route('verification.send') }}">
-                @csrf
-                <button type="submit" class="btn btn-amber"><i class="bx bx-send"></i> Resend verification link</button>
-            </form>
+        <p class="text">Upload a clear photo or PDF of a government or school ID. Your landlord uses it to confirm who you are.</p>
+        @if ($user->valid_id)
+            <p class="text"><a href="{{ route('account.valid-id.show', $user->user_id) }}" target="_blank" rel="noopener" class="file-link"><i class="bx bx-show"></i> View uploaded ID</a>
+                <span class="muted-inline">· uploaded {{ $user->valid_id_uploaded_at?->format('M j, Y') }}</span></p>
         @endif
+        <form method="POST" action="{{ route('account.valid-id') }}" enctype="multipart/form-data" class="upload-row">
+            @csrf
+            <input type="file" name="valid_id" accept="image/jpeg,image/png,image/webp,application/pdf" required>
+            <button type="submit" class="btn btn-dark">{{ $user->valid_id ? 'Upload new copy' : 'Upload ID' }}</button>
+        </form>
+        @if ($vi->has('valid_id'))<p class="f-err">{{ $vi->first('valid_id') }}</p>@endif
+        <p class="hint">JPG, PNG, WEBP or PDF, up to 5 MB. Only you, your landlord and the RSYNC admins can see this file.</p>
     </section>
+    @endif
 
     @if ($user->isOwner())
     {{-- ── Business permit (landlords and sublessors) ── --}}
@@ -162,6 +227,12 @@
         <p class="hint">JPG, PNG, WEBP or PDF, up to 5 MB. Only you and the RSYNC admins can see this file.@if ($user->business_permit) Uploading a new copy sends it for review again.@endif</p>
     </section>
     @endif
+    @else
+    <section class="card locked">
+        <i class="bx bx-lock"></i>
+        <p>Verify your email to fill in your name, birthday{{ $isTenant ? ', contact details and valid ID' : ', contact number and business permit' }}.</p>
+    </section>
+    @endif
 
     {{-- ── Password ── --}}
     <section class="card">
@@ -186,7 +257,7 @@
                     <input type="password" id="password_confirmation" name="password_confirmation" minlength="8" required autocomplete="new-password">
                 </div>
             </div>
-            <p class="hint">At least 8 characters. Forgot your current password? Log out and use “Forgot password” on the login page.</p>
+            <p class="hint">{{ \App\Support\PasswordRules::HINT }} Forgot your current password? Log out and use “Forgot password” on the login page.</p>
             <div class="card-foot end">
                 <button type="submit" class="btn btn-dark">Change password</button>
             </div>
