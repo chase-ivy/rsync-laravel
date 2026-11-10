@@ -1,0 +1,37 @@
+/* RSYNC maps (home page, room page, landlord pin picker). Loaded by resources/js/maps.js. */
+
+/* isolation keeps Leaflet's high z-index panes from covering the fixed menu, the search results and the windows */
+#rooms-map, #room-map, .pick-map { position: relative; z-index: 0; isolation: isolate; background: #e8e6df; }
+
+#rooms-map { height: 460px; border-radius: 16px; border: 1px solid rgba(0,0,0,.08); box-shadow: 0 2px 12px rgba(0,0,0,.06); overflow: hidden; }
+#room-map { height: 300px; border-radius: 12px; overflow: hidden; }
+.map-unavailable { display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; color: #6b7280; font-size: 13px; }
+
+/* popups */
+.map-pop-list { display: flex; flex-direction: column; gap: 10px; max-height: 220px; overflow-y: auto; }
+.map-pop { display: flex; gap: 10px; align-items: center; min-width: 200px; }
+.map-pop img, .map-pop-noimg { width: 58px; height: 48px; border-radius: 8px; object-fit: cover; background: #f1f0eb; flex-shrink: 0; }
+.map-pop-name { display: block; font-weight: 700; font-size: 13px; color: #0a0a0f; text-decoration: none; }
+.map-pop-name:hover { text-decoration: underline; }
+.map-pop-meta { font-size: 12px; color: #6b7280; }
+
+/* home page section */
+.map-section { padding-bottom: 0 !important; }
+.map-count { font-size: 13px; color: #8e8ea0; }
+
+/* room page card */
+.loc-card { margin-top: 18px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.06); padding: 18px; }
+.loc-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.loc-head h4 { font-size: 13px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: .3px; }
+.loc-head a { font-size: 13px; color: #111118; font-weight: 500; text-decoration: none; }
+.loc-head a:hover { text-decoration: underline; }
+
+/* landlord pin picker */
+.pick-search { display: flex; gap: 6px; margin-bottom: 8px; }
+.pick-search input { flex: 1; min-width: 0; }
+.pick-map { height: 240px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(0,0,0,.12); cursor: crosshair; }
+.pick-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.pick-hint { font-size: 12px; color: #8e8ea0; }
+.pick-actions { display: flex; gap: 6px; }
+
+@media (max-width: 768px) { #rooms-map { height: 340px; } }
