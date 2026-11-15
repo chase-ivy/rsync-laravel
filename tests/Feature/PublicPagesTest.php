@@ -41,7 +41,7 @@ class PublicPagesTest extends TestCase
 
     // ---------- Home page ----------
 
-    public function test_home_shows_counts_and_featured_rooms_available_first(): void
+    public function test_home_shows_result_count_and_rooms_available_first(): void
     {
         $this->room('Old Available', 3000, 'Available', 2, '2026-01-01 10:00:00');
         $this->room('New Occupied', 4000, 'Occupied', 1, '2026-03-01 10:00:00');
@@ -51,25 +51,24 @@ class PublicPagesTest extends TestCase
             ->assertSee('Find a room that feels')
             ->assertSee('name="csrf-token"', false);
 
-        $html = $response->getContent();
-        $this->assertMatchesRegularExpression('/stat-num">3<.*Total Rooms/s', $html);
-        $this->assertMatchesRegularExpression('/stat-num">2<.*Available/s', $html);
-        $this->assertMatchesRegularExpression('/stat-num">1<.*Occupied/s', $html);
+        // The Total / Available / Occupied stats were removed (not useful to a renter); a result count replaced them.
+        $response->assertSee('<strong>3 rooms</strong> with a free slot', false)->assertDontSee('stat-num', false);
         // available (newest first), then the rest
         $response->assertSeeInOrder(['New Available', 'Old Available', 'New Occupied']);
     }
 
-    public function test_home_shows_at_most_6_rooms_and_empty_message(): void
+    public function test_home_shows_at_most_8_rooms_and_empty_message(): void
     {
         $this->get('/')->assertSee('No rooms listed yet.');
 
-        foreach (range(1, 8) as $i) {
+        foreach (range(1, 10) as $i) {
             $this->room("Room $i", 1000 * $i);
         }
-        $this->assertSame(6, substr_count($this->get('/')->getContent(), 'class="c-name"'));
+        // Two full rows of 4 under the map (was 6 before the redesign); /rooms has the rest.
+        $this->assertSame(8, substr_count($this->get('/')->getContent(), 'class="c-name"'));
     }
 
-    public function test_card_shows_cover_photo_occupants_and_price(): void
+    public function test_card_shows_cover_photo_and_price_but_no_occupants(): void
     {
         $tenant = $this->user('t@gmail.com');
         $room = $this->room('Room 201', 4500, 'Available', 4);
@@ -80,8 +79,9 @@ class PublicPagesTest extends TestCase
 
         $this->get('/')
             ->assertSee(asset('images/cover.jpg'), false)
-            ->assertSee('Occupants: <strong>1/4</strong>', false)
-            ->assertSee('style="width:25%"', false)
+            ->assertDontSee('Occupants')                 // occupant counts are no longer public
+            ->assertDontSee('style="width:25%"', false)
+            ->assertSee('Shared room')                   // the room type instead
             ->assertSee('₱4,500');
     }
 
@@ -168,9 +168,10 @@ class PublicPagesTest extends TestCase
             ->assertSee('<title>Room 201 · RSYNC </title>', false)
             ->assertSee('₱4,500<span> / person</span>', false)   // price type added (per person by default)
             ->assertSee('Each tenant pays this amount.')
-            ->assertSee('Occupants: <strong>0 / 2</strong>', false)
-            ->assertSee('2 persons')
-            ->assertSee('2 open')
+            ->assertDontSee('Occupants')                 // occupant counts, max occupants and open slots are no longer public
+            ->assertDontSee('2 persons')
+            ->assertDontSee('2 open')
+            ->assertSee('Shared room')
             ->assertSee('id="mainImgEl"', false)
             ->assertSeeInOrder([asset('images/a.jpg'), asset('images/b.jpg')], false)
             ->assertSee('Login to Apply');

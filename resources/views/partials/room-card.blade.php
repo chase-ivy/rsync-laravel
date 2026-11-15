@@ -1,39 +1,39 @@
 {{--
-    One room card (home page and rooms page).
-    $r = a Room loaded with withListingInfo(); $withApply = show the Apply button (home page only).
+    One room card (home page and rooms page, see partials/room-browse).
+    $r = a Room loaded with withListingInfo(); $withApply = show the Apply button.
+    The number of occupants is not shown on purpose: renters pick a room type with the filters instead.
 --}}
 @php
-    $max = (int) ($r->max_occupants ?? 1);
-    $cur = (int) ($r->current_occupants ?? 0);
-    $pct = $max > 0 ? round($cur / $max * 100) : 0;
     $cover = $r->cover_image ? \App\Support\RoomPhotos::url($r->cover_image) : null;
+    $url = route('rooms.show', $r->room_id);
 @endphp
-<div class="card" data-n="{{ mb_strtolower($r->room_name) }}" data-a="{{ mb_strtolower((string) $r->address) }}" data-s="{{ strtolower((string) $r->status) }}" data-p="{{ $r->price }}">
-    <div class="c-img">
+<article class="card" data-room-id="{{ $r->room_id }}">
+    <a class="c-img" href="{{ $url }}" tabindex="-1" aria-hidden="true">
         @if ($cover)
-            <img src="{{ $cover }}" alt="{{ $r->room_name }}" onerror="this.parentElement.innerHTML='<div class=\'no-img\'>No image</div>'">
-        @else<div class="no-img">No image</div>@endif
+            <img src="{{ $cover }}" alt="" loading="lazy" onerror="this.outerHTML='<span class=\'no-img\'>No photo yet</span>'">
+        @else<span class="no-img">No photo yet</span>@endif
         <span class="chip {{ strtolower((string) $r->status) }}">{{ $r->status }}</span>
-    </div>
+    </a>
     <div class="c-body">
-        <div class="c-name">{{ $r->room_name }}</div>
-        @if ($r->address)<div class="c-addr"><i class="bx bx-map"></i> {{ $r->address }}</div>@endif
-        <div class="occ">Occupants: <strong>{{ $cur }}/{{ $max }}</strong>
-            <div class="occ-bar"><div class="occ-fill {{ $cur >= $max ? 'full' : '' }}" style="width:{{ $pct }}%"></div></div>
+        <h3 class="c-name"><a href="{{ $url }}">{{ $r->room_name }}</a></h3>
+        @if ($r->address)<div class="c-addr"><i class="bx bx-map" aria-hidden="true"></i> {{ $r->address }}</div>@endif
+        <div class="c-meta">
+            <span class="c-type">{{ \App\Support\RoomFilters::typeWord($r) }}</span>
+            @if ($r->hasLocation())
+                <a class="c-maplink" href="#map" data-show-on-map="{{ $r->room_id }}"><i class="bx bx-map-pin" aria-hidden="true"></i> Show on map</a>
+            @endif
         </div>
         <p class="c-desc">{{ $r->description ?? '' }}</p>
         <div class="c-foot">
             <div class="c-price">₱{{ number_format($r->price) }}<span> / {{ $r->isWholeRoomPrice() ? 'room' : 'person' }}</span>
                 @if ($r->isWholeRoomPrice())<div class="c-split">{{ $r->splitNote() }}</div>@endif
             </div>
-            @if ($withApply)
-                <div style="display:flex;gap:6px;">
-                    <a href="{{ route('rooms.show', $r->room_id) }}" class="view-btn">View <i class="bx bx-right-arrow-alt"></i></a>
-                    <button onclick="applyForRoom({{ $r->room_id }}, this.dataset.name)" data-name="{{ $r->room_name }}" class="view-btn" style="background:var(--amber);border:none;cursor:pointer;">Apply</button>
-                </div>
-            @else
-                <a href="{{ route('rooms.show', $r->room_id) }}" class="view-btn">View <i class="bx bx-right-arrow-alt"></i></a>
-            @endif
+            <div class="c-actions">
+                <a href="{{ $url }}" class="view-btn">View</a>
+                @if ($withApply)
+                    <button type="button" class="view-btn apply-btn" data-apply="{{ $r->room_id }}" data-name="{{ $r->room_name }}">Apply</button>
+                @endif
+            </div>
         </div>
     </div>
-</div>
+</article>

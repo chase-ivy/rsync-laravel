@@ -86,7 +86,7 @@ data-dashboard-url="{{ route('tenant.dashboard') }}"
                 <div class="room-price">₱{{ number_format($room->price) }}<span> / {{ $room->isWholeRoomPrice() ? 'room' : 'person' }}</span></div>
                 {{-- Whole-room prices are split by capacity, so each tenant's rent stays the same when roommates come or go. --}}
                 @if ($room->isWholeRoomPrice())
-                    <p class="price-hint">Monthly rent for the whole room, split between tenants: {{ $room->splitNote() }}. Each tenant's contract rent is the price divided by the max occupants, so it doesn't change when roommates move in or out.</p>
+                    <p class="price-hint">Monthly rent for the whole room, split between tenants: {{ $room->splitNote() }}. Each tenant's share is the price divided by the number of people the room is for, so it doesn't change when roommates move in or out.</p>
                 @else
                     <p class="price-hint">Monthly rent. Each tenant pays this amount.</p>
                 @endif
@@ -98,20 +98,9 @@ data-dashboard-url="{{ route('tenant.dashboard') }}"
                     <span class="badge {{ $room->status === 'Available' ? 'badge-av' : 'badge-oc' }}">{{ $room->status }}</span>
                 </div>
 
-                <div class="slots-block">
-                    <div class="slots-label">Occupants: <strong>{{ $current }} / {{ $max }}</strong></div>
-                    <div class="slots-bar">
-                        <div class="slots-fill {{ $full ? 'full' : '' }}" style="width:{{ $pct }}%"></div>
-                    </div>
-                </div>
-
                 <div class="info-row">
-                    <span class="label">Max occupants</span>
-                    <span class="val">{{ $max }} person{{ $max > 1 ? 's' : '' }}</span>
-                </div>
-                <div class="info-row">
-                    <span class="label">Slots available</span>
-                    <span class="val" style="color:{{ $full ? 'var(--red)' : 'var(--green)' }}">{{ max(0, $max - $current) }} open</span>
+                    <span class="label">Room type</span>
+                    <span class="val">{{ \App\Support\RoomFilters::typeWord($room) }}</span>
                 </div>
 
                 @php $amenities = $room->amenityList(); @endphp

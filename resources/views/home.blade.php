@@ -2,92 +2,59 @@
 
 @section('title', 'RSYNC — Find Your Room')
 
+@if ($hasPins)
 @push('head')
 @include('partials.leaflet')
 @endpush
+@endif
 
 @section('fonts')
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/boxicons@latest/css/boxicons.min.css" rel="stylesheet">
 @endsection
 
-{{-- Values the page script needs (index.php printed them into its <script> with PHP). --}}
+{{-- Values the page script needs. The room list keeps its own values on the list itself (partials/room-browse). --}}
 @section('body_attrs')
-data-logged-in="{{ auth()->check() ? '1' : '0' }}"
-data-tenant="{{ auth()->user()?->role === 'tenant' ? '1' : '0' }}"
-data-search-url="{{ route('home') }}"
-data-apply-url="{{ route('rooms.apply') }}"
-data-room-url="{{ url('rooms') }}"
-data-images-url="{{ \App\Support\RoomPhotos::baseUrl() }}"
 data-register-url="{{ route('register') }}"
-data-login-url="{{ route('login') }}"
-data-dashboard-url="{{ route('tenant.dashboard') }}"
 @endsection
 
 @section('content')
 @include('partials.public-nav')
 
-<div class="hero">
-    <div class="hero-grid"></div>
-    <h1>Find a room that feels<br>like <em>home</em></h1>
-    <p class="hero-sub">Simple, safe, and student-focused boarding house system in Baguio City.</p>
-
-    <div class="search-wrap">
-        <i class="bx bx-search s-icon"></i>
-        <input type="text" id="si" placeholder="Search by room name, price, description..." autocomplete="off">
-        <button class="s-clear" id="sc"><i class="bx bx-x"></i></button>
-        <div id="sr"></div>
+{{-- The map is the hero: every matching room is a price pin, with the search card floating on its left (stacked under a shorter map on phones). --}}
+<div class="home-top {{ $hasPins ? 'home-top--map' : '' }}">
+    <div class="search-card" data-map-cover>
+        <h1>Find a room that feels like <em>home</em></h1>
+        <p class="search-sub">Boarding houses and bed spaces in Baguio City.</p>
+        @include('partials.room-filters', ['action' => route('home'), 'stacked' => true])
+        @if ($filters->isActive())
+            <p class="search-result">
+                <a href="#rooms"><strong>{{ $total }} {{ $total === 1 ? 'room' : 'rooms' }}</strong> {{ $total === 1 ? 'matches' : 'match' }} <i class="bx bx-down-arrow-alt" aria-hidden="true"></i></a>
+                <a href="{{ route('home') }}" class="search-clear">Clear filters</a>
+            </p>
+        @endif
     </div>
 
-    <div class="hero-stats">
-        <div class="stat"><div class="stat-num">{{ $total }}</div><div class="stat-label">Total Rooms</div></div>
-        <div class="stat-divider"></div>
-        <div class="stat"><div class="stat-num">{{ $available }}</div><div class="stat-label">Available</div></div>
-        <div class="stat-divider"></div>
-        <div class="stat"><div class="stat-num">{{ $occupied }}</div><div class="stat-label">Occupied</div></div>
-    </div>
+    @include('partials.room-browse', [
+        'heading' => 'Rooms in Baguio City',
+        'cards' => $cards->take(8),   // two full rows of 4 on a laptop
+        'baseUrl' => route('home'),
+        'moreUrl' => route('rooms.index', $filters->query()),
+    ])
 </div>
 
-@if ($mapRooms->isNotEmpty())
-<div class="section map-section" id="map-section">
-    <div class="sec-head">
-        <div>
-            <div class="sec-label">Explore</div>
-            <div class="sec-title">Rooms on the map</div>
-        </div>
-        <span class="map-count">{{ $mapRooms->count() }} {{ $mapRooms->count() === 1 ? 'room' : 'rooms' }} pinned</span>
-    </div>
-    <div id="rooms-map" data-rooms='@json($mapRooms)'></div>
-</div>
-@endif
-
-<div class="section">
-    <div class="sec-head">
-        <div>
-            <div class="sec-label">Browse</div>
-            <div class="sec-title">Featured Rooms</div>
-        </div>
-        <a href="{{ route('rooms.index') }}" class="sec-link">View all →</a>
-    </div>
-    <div class="grid">
-    @forelse ($featured as $r)
-        @include('partials.room-card', ['r' => $r, 'withApply' => ! (auth()->user()?->role === 'tenant' && auth()->user()->activeTenancy())])
-    @empty
-        <p style="color:var(--ink3);grid-column:1/-1;padding:40px 0">No rooms listed yet.</p>
-    @endforelse
-</div>
 <!-- ═══ SUBSCRIPTION PLANS SECTION ═══ -->
-<div class="section" id="plans">
+<section class="section plans" id="plans">
     <div class="plan-hero">
         <div>
-            <div class="sec-label">For Landlords</div>
-            <div class="sec-title" style="margin-bottom:6px;">Simple, transparent pricing</div>
+            <h2 class="sec-title">Landlords: simple, transparent pricing</h2>
             <p class="plan-note">List your rooms, manage tenants, and grow your boarding house business.</p>
         </div>
         <div class="billing-toggle" role="tablist" aria-label="Billing period">
             <button type="button" class="tgl active" id="btn-m" onclick="setBilling('monthly')">Monthly</button>
             <button type="button" class="tgl" id="btn-a" onclick="setBilling('annual')">Annual <span class="save-tag">Save 20%</span></button>
         </div>
+        <p class="plan-trial">All plans include a 14-day free trial. No credit card required.</p>
     </div>
 
     <div class="plans-grid">
@@ -166,12 +133,10 @@ data-dashboard-url="{{ route('tenant.dashboard') }}"
             <button class="plan-btn" onclick="selectPlan('Enterprise')">Choose Enterprise</button>
         </div>
     </div>
-    <p style="text-align:center;font-size:12px;color:var(--ink3);margin-top:20px;">All plans include a 14-day free trial. No credit card required.</p>
-</div>
+</section>
 
-<div class="why">
+<div class="why" aria-label="Why RSYNC">
     <div class="why-inner">
-        <h2>Built for easier and convenient way to find your next boarding house!</h2>
         <div class="why-grid">
             <div class="why-card"><div class="why-icon"><i class="bx bx-check-shield"></i></div><h3>Clean Booking System</h3><p>Simple room browsing, no confusion.</p></div>
             <div class="why-card"><div class="why-icon"><i class="bx bx-badge-check"></i></div><h3>Verified Listings</h3><p>All rooms reviewed before going live.</p></div>

@@ -1,4 +1,4 @@
-// RSYNC maps: shared helpers for the home page, the room page and the landlord's pin picker.
+// RSYNC maps: shared helpers for the room lists (home, /rooms), the room page and the landlord's pin picker.
 // Leaflet itself is loaded from a CDN in the page <head> (partials/leaflet.blade.php), so it is the global `L`.
 // Map tiles come from OpenStreetMap.
 import '../css/maps.css';
@@ -8,6 +8,9 @@ const L = window.L;
 // Where maps open when there is nothing to show yet: Baguio City.
 const DEFAULT_CENTER = [16.4023, 120.5960];
 const DEFAULT_ZOOM = 13;
+// Room lists open a little closer, on the city centre (Session Road / Burnham Park).
+const BAGUIO_CENTER = [16.4110, 120.5970];
+const BAGUIO_ZOOM = 14;
 
 function esc(s) {
     return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -30,13 +33,27 @@ function unavailable(el) {
     el.textContent = 'The map could not be loaded. Please check your internet connection.';
 }
 
-// ── Home page: every listed room that has a pin ──
-// rooms: [{ id, name, price, slots_left, image, lat, lng }]
-export function initRoomsMap(el, rooms, roomUrl) {
+// ── Room lists (home page and /rooms): one price pin per building, linked to the room cards ──
+// rooms: [{ id, name, price, price_label, rent, area, image, lat, lng }] (RoomFilters::mapPins)
+// opts: { roomUrl, canApply, cover }  →  returns { highlight(id, on), show(id), refresh() } or null.
+// cover = an element drawn over the map's left side (the home page search card): pins are kept to its right.
+const peso = n => '₱' + Number(n).toLocaleString('en-PH', { maximumFractionDigits: 0 });
+
+export function initBrowseMap(el, rooms, opts) {
     if (!el) return null;
     if (!L) { unavailable(el); return null; }
 
-    const map = baseMap(el).setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+    // Baguio City: the whole city fits at zoom 14 around Burnham Park / Session Road.
+    const map = baseMap(el, { zoomControl: false }).setView(BAGUIO_CENTER, BAGUIO_ZOOM);
+    L.control.zoom({ position: opts.cover ? 'topright' : 'topleft' }).addTo(map);
+
+    // How many pixels of the map's left side the cover hides right now (0 when it sits above or below the map, as on phones).
+    const coverLeft = () => {
+        if (!opts.cover) return 0;
+        const c = opts.cover.getBoundingClientRect(), m = el.getBoundingClientRect();
+        const overlaps = c.bottom > m.top && c.top < m.bottom && c.left < m.right && c.right > m.left;
+        return overlaps ? Math.max(0, Math.round(c.right - m.left)) : 0;
+    };
 
     // Rooms in the same building share one pin; its popup lists all of them.
     const groups = new Map();
@@ -46,25 +63,79 @@ export function initRoomsMap(el, rooms, roomUrl) {
         groups.get(key).push(r);
     });
 
+    const byRoom = new Map();   // room id → marker
     const points = [];
     groups.forEach(list => {
         const ll = [Number(list[0].lat), Number(list[0].lng)];
         points.push(ll);
-        const html = '<div class="map-pop-list">' + list.map(r => `
-            <div class="map-pop">
-                ${r.image ? `<img src="${esc(r.image)}" alt="">` : '<div class="map-pop-noimg"></div>'}
-                <div>
-                    <a class="map-pop-name" href="${esc(roomUrl)}/${encodeURIComponent(r.id)}">${esc(r.name)}</a>
-                    <div class="map-pop-meta">₱${Number(r.price).toLocaleString()} / month</div>
-                    <div class="map-pop-meta">${esc(r.slots_left)} slot${Number(r.slots_left) === 1 ? '' : 's'} open</div>
-                </div>
-            </div>`).join('') + '</div>';
-        L.marker(ll).addTo(map).bindPopup(html, { maxWidth: 280 });
+        const cheapest = list.reduce((a, b) => (Number(b.price) < Number(a.price) ? b : a));
+        const label = peso(cheapest.price) + (list.length > 1 ? ` <small>+${list.length - 1}</small>` : '');
+        const icon = L.divIcon({ className: 'price-pin', html: `<span>${label}</span>`, iconSize: null, iconAnchor: [0, 0] });
+        const names = list.map(r => r.name).join(', ');
+        const marker = L.marker(ll, { icon, title: names, alt: names, riseOnHover: true }).addTo(map);
+        marker.bindPopup(popupHtml(list, opts), { maxWidth: 300, minWidth: 240, autoPanPadding: [20, 20], className: 'room-pop' });
+        list.forEach(r => byRoom.set(String(r.id), marker));
     });
 
-    if (points.length === 1) map.setView(points[0], 16);
-    else if (points.length > 1) map.fitBounds(points, { padding: [40, 40], maxZoom: 16 });
-    return map;
+    // Show every pin (or Baguio when there are none).
+    const fit = () => {
+        if (points.length === 1) {
+            map.setView(points[0], 16);
+            map.panBy([-coverLeft() / 2, 0], { animate: false });   // into the middle of the part you can see
+        } else if (points.length > 1) {
+            map.fitBounds(points, { paddingTopLeft: [48 + coverLeft(), 48], paddingBottomRight: [48, 48], maxZoom: 16 });
+        }
+    };
+    // A map made while hidden (phone List view) has no size yet: fit it the first time it is shown.
+    let fitLater = el.clientHeight === 0;
+    if (!fitLater) fit();
+
+    const setActive = (marker, on) => {
+        const node = marker.getElement();
+        if (node) node.classList.toggle('is-active', on);
+        marker.setZIndexOffset(on ? 1000 : 0);
+    };
+
+    return {
+        // A card is hovered or focused: light up its pin.
+        highlight(id, on) {
+            const m = byRoom.get(String(id));
+            if (m) setActive(m, on);
+        },
+        // "Show on map": go to the pin and open its popup.
+        show(id) {
+            const m = byRoom.get(String(id));
+            if (!m) return;
+            map.setView(m.getLatLng(), Math.max(map.getZoom(), 16), { animate: false });
+            map.panBy([-coverLeft() / 2, 0], { animate: false });
+            m.openPopup();
+        },
+        // The map was hidden (phone List view) or resized: let it measure itself again.
+        refresh(refit = false) {
+            map.invalidateSize();
+            if (refit) fitLater = true;
+            if (fitLater && el.clientHeight > 0) { fitLater = false; fit(); }
+        },
+    };
+}
+
+function popupHtml(list, { roomUrl, canApply }) {
+    return '<div class="map-pop-list">' + list.map(r => {
+        const url = `${esc(roomUrl)}/${encodeURIComponent(r.id)}`;
+        return `
+        <div class="map-pop">
+            ${r.image ? `<a href="${url}" tabindex="-1"><img src="${esc(r.image)}" alt=""></a>` : '<div class="map-pop-noimg"></div>'}
+            <div class="map-pop-body">
+                <a class="map-pop-name" href="${url}">${esc(r.name)}</a>
+                ${r.area ? `<div class="map-pop-meta">${esc(r.area)}</div>` : ''}
+                <div class="map-pop-price">${esc(r.price_label)}</div>
+                <div class="map-pop-actions">
+                    <a class="map-pop-btn" href="${url}">View</a>
+                    ${canApply ? `<button type="button" class="map-pop-btn amber" data-apply="${esc(r.id)}" data-name="${esc(r.name)}">Apply</button>` : ''}
+                </div>
+            </div>
+        </div>`;
+    }).join('') + '</div>';
 }
 
 // ── Room page: one pin, not movable ──

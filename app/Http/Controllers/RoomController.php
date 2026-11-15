@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Room;
+use App\Support\RoomFilters;
 use Illuminate\Http\Request;
 
 /**
@@ -10,23 +11,15 @@ use Illuminate\Http\Request;
  */
 class RoomController extends Controller
 {
-    /** GET /rooms — or /rooms?name=... like rooms.php?name=... */
+    /** GET /rooms — every listed room, with the same filters as the home page (see RoomFilters). rooms.php?name=... still works. */
     public function index(Request $request)
     {
-        $search = trim((string) $request->query('name', ''));
+        $browse = RoomFilters::browse($request);
 
-       
-                $rooms = Room::withListingInfo()
-            ->withOpenSlots()   // full rooms are not listed
-            // Name or (new) address contains the text, e.g. "magsaysay".
-            ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w
-                ->whereRaw('LOWER(room_name) LIKE ?', ['%' . mb_strtolower($search) . '%'])
-                ->orWhereRaw('LOWER(address) LIKE ?', ['%' . mb_strtolower($search) . '%']))
-                ->orderBy('room_id'))
-            ->when($search === '', fn ($q) => $q->orderByDesc('created_at'))
-            ->get();
-
-        return view('rooms.index', ['rooms' => $rooms, 'search' => $search]);
+        return view('rooms.index', $browse + [
+            'total' => $browse['rooms']->count(),
+            'mapRooms' => RoomFilters::mapPins($browse['rooms']),
+        ]);
     }
 
     /** GET /rooms/{id} — like room_detail.php?id=... ; unknown room → back to the list. */
@@ -39,16 +32,11 @@ class RoomController extends Controller
         }
 
         $images = $room->images()->orderBy('image_id')->get();
-        $max = (int) ($room->max_occupants ?? 1);
-        $current = (int) $room->current_occupants;
-
         return view('rooms.show', [
             'room' => $room,
             'images' => $images,
-            'max' => $max,
-            'current' => $current,
-            'pct' => $max > 0 ? (int) round($current / $max * 100) : 0,
-            'full' => $current >= $max,
+            // The occupant count is not shown to the public any more; it only decides "Room Full".
+            'full' => (int) $room->current_occupants >= max(1, (int) ($room->max_occupants ?? 1)),
         ]);
     }
 }

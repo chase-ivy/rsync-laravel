@@ -55,7 +55,8 @@ class RoomPhotosSupabaseTest extends TestCase
 
         $this->get('/rooms')->assertSee(self::BASE . '/storage/v1/object/public/room-photos/cover.jpg', false);
         $this->get('/rooms/' . $room->room_id)->assertSee(self::BASE . '/storage/v1/object/public/room-photos/cover.jpg', false);
-        $this->get('/')->assertSee('data-images-url="' . self::BASE . '/storage/v1/object/public/room-photos"', false);
+        // The home page no longer has the live-search dropdown (data-images-url); its cards use the full photo URL.
+        $this->get('/')->assertSee(self::BASE . '/storage/v1/object/public/room-photos/cover.jpg', false);
     }
 
     public function test_upload_sends_the_file_with_the_secret_key(): void

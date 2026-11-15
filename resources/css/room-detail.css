@@ -43,12 +43,6 @@ nav { position:sticky; top:0; z-index:99; display:flex; align-items:center; just
 .badge-av { background:#f0fdf4; color:var(--green); border:1px solid #bbf7d0; }
 .badge-oc { background:#fff1f2; color:var(--red);   border:1px solid #fecdd3; }
 
-.slots-block { margin:16px 0; }
-.slots-label { font-size:12px; color:var(--muted); margin-bottom:6px; }
-.slots-label strong { color:var(--ink); font-size:14px; }
-.slots-bar { height:6px; border-radius:999px; background:var(--border); overflow:hidden; }
-.slots-fill { height:100%; border-radius:999px; background:var(--ink); }
-.slots-fill.full { background:var(--red); }
 
 .desc-block { margin-top:16px; }
 .desc-block h4 { font-size:13px; font-weight:600; color:var(--muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:.3px; }

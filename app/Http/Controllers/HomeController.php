@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Room;
-use App\Support\RoomPhotos;
+use App\Support\RoomFilters;
 use Illuminate\Http\Request;
 
 /**
@@ -11,38 +11,25 @@ use Illuminate\Http\Request;
  */
 class HomeController extends Controller
 {
-    /** GET / — or GET /?search=... for the live search (JSON), like index.php?search=... */
+    /** GET / (with optional filters, see RoomFilters) — or GET /?search=... for the old live search (JSON), like index.php?search=... */
     public function index(Request $request)
     {
         if ($request->has('search')) {
-            return response()->json($this->search((string) $request->query('search')));
+            $text = $request->query('search');
+
+            return response()->json($this->search(is_string($text) ? $text : ''));   // ?search[]=x must not crash
         }
 
-        // Same as index.php: all rooms (newest first), counts, and 6 featured (available first).
-        $all = Room::withListingInfo()->orderByDesc('created_at')->get();
-        $available = $all->where('status', 'Available');
+        // Listed rooms (full rooms are hidden) that match the filters in the address bar.
+        $browse = RoomFilters::browse($request);
+        $rooms = $browse['rooms'];
 
-        return view('home', [
-            'total' => $all->count(),
-            'available' => $available->count(),
-            'occupied' => $all->count() - $available->count(),
-            // Map pins: the rooms the public can see (full rooms are hidden) that have a pin.
-            'mapRooms' => $all
-                ->filter(fn (Room $r) => $r->hasLocation() && (int) $r->current_occupants < max(1, (int) $r->max_occupants))
-                ->map(fn (Room $r) => [
-                    'id' => $r->room_id,
-                    'name' => $r->room_name,
-                    'price' => $r->price,
-                    'slots_left' => max(1, (int) $r->max_occupants) - (int) $r->current_occupants,
-                    'image' => $r->cover_image ? RoomPhotos::url($r->cover_image) : null,
-                    'lat' => $r->latitude,
-                    'lng' => $r->longitude,
-                ])
-                ->values(),
-                        // Full rooms are not shown (available first, then the rest that still have a free slot).
-            'featured' => $available->concat($all->where('status', '!==', 'Available'))
-                ->filter(fn (Room $r) => (int) $r->current_occupants < max(1, (int) $r->max_occupants))
-                ->take(6),
+        return view('home', $browse + [
+            // Available first, then newest. The page shows the first few as cards; /rooms has the full list.
+            'cards' => $rooms->sortBy(fn (Room $r) => $r->status === 'Available' ? 0 : 1)->take(12)->values(),
+            'total' => $rooms->count(),
+            // Map pins: every matching room that has a pin (also the ones beyond the 6 cards).
+            'mapRooms' => RoomFilters::mapPins($rooms),
         ]);
     }
 
