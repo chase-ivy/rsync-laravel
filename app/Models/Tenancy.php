@@ -75,6 +75,49 @@ class Tenancy extends Model
         return $this->accepted_at !== null;
     }
 
+    /**
+     * Next day rent is due: the start date, or the next monthly anniversary of it on/after $today.
+     * Null when that day falls after the end of the contract (nothing more to pay).
+     */
+    public function nextRentDue(?\Carbon\CarbonInterface $today = null): ?\Carbon\Carbon
+    {
+        if (! $this->start_date || ! $this->end_date) {
+            return null;
+        }
+        $today = \Carbon\Carbon::parse(($today ?? now('Asia/Manila'))->toDateString());
+        $due = $this->start_date->copy()->startOfDay();
+        for ($n = 1; $due->lt($today); $n++) {
+            $due = $this->start_date->copy()->startOfDay()->addMonthsNoOverflow($n);
+        }
+
+        return $due->lte($this->end_date) ? $due : null;
+    }
+
+    /**
+     * The months of the stay, for the month strip on the tenant dashboard:
+     * [['label' => 'Aug', 'year' => 2026, 'state' => 'past'|'now'|'next'], ...]
+     */
+    public function stayMonths(?\Carbon\CarbonInterface $today = null): array
+    {
+        if (! $this->start_date || ! $this->end_date || $this->end_date->lt($this->start_date)) {
+            return [];
+        }
+        $now = ($today ?? now('Asia/Manila'))->format('Y-m');
+        $m = $this->start_date->copy()->startOfMonth();
+        $months = [];
+        while ($m->lte($this->end_date) && count($months) < 36) {
+            $key = $m->format('Y-m');
+            $months[] = [
+                'label' => $m->format('M'),
+                'year' => (int) $m->format('Y'),
+                'state' => $key < $now ? 'past' : ($key === $now ? 'now' : 'next'),
+            ];
+            $m->addMonthNoOverflow();
+        }
+
+        return $months;
+    }
+
     /** When it was accepted, in Philippine time, e.g. "November 15, 2026 at 6:30 PM". */
     public function acceptedAtText(): ?string
     {

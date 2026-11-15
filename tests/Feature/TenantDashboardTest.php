@@ -109,4 +109,44 @@ class TenantDashboardTest extends TestCase
             ->assertSee('<div class="toast err">Something failed.</div>', false);
         $this->actingAs($me)->get('/tenant/dashboard')->assertDontSee('Something failed.');
     }
+
+    public function test_next_rent_due_is_the_next_monthly_anniversary_inside_the_contract(): void
+    {
+        $t = new Tenancy(['start_date' => '2026-01-31', 'end_date' => '2026-06-29']);
+
+        $this->assertSame('2026-01-31', $t->nextRentDue(\Carbon\Carbon::parse('2026-01-10'))->toDateString());   // before move-in: first rent
+        $this->assertSame('2026-01-31', $t->nextRentDue(\Carbon\Carbon::parse('2026-01-31'))->toDateString());   // due today
+        $this->assertSame('2026-02-28', $t->nextRentDue(\Carbon\Carbon::parse('2026-02-01'))->toDateString());   // short month: no overflow
+        $this->assertSame('2026-05-31', $t->nextRentDue(\Carbon\Carbon::parse('2026-05-15'))->toDateString());
+        $this->assertNull($t->nextRentDue(\Carbon\Carbon::parse('2026-06-05')));                                // next one is after the end
+    }
+
+    public function test_stay_months_mark_past_current_and_coming_months(): void
+    {
+        $t = new Tenancy(['start_date' => '2026-10-15', 'end_date' => '2027-01-14']);
+        $months = $t->stayMonths(\Carbon\Carbon::parse('2026-11-20'));
+
+        $this->assertSame(['Oct', 'Nov', 'Dec', 'Jan'], array_column($months, 'label'));
+        $this->assertSame(['past', 'now', 'next', 'next'], array_column($months, 'state'));
+        $this->assertSame(2027, $months[3]['year']);
+    }
+
+    public function test_dashboard_shows_next_rent_and_totals_paid(): void
+    {
+        $this->travelTo(\Carbon\Carbon::parse('2026-11-15 10:00', 'Asia/Manila'));
+        $me = $this->user('t@gmail.com');
+        $room = $this->room('Room 201', 4500);
+        Tenancy::create(['user_id' => $me->user_id, 'room_id' => $room->room_id, 'start_date' => '2026-08-01', 'end_date' => '2027-05-31', 'status' => 'Active', 'monthly_rent' => 4500]);
+        \App\Models\Payment::create(['user_id' => $me->user_id, 'amount' => 4500, 'date' => '2026-10-01', 'status' => 'Verified']);
+        \App\Models\Payment::create(['user_id' => $me->user_id, 'amount' => 4500, 'date' => '2026-11-01', 'status' => 'Verified']);
+        \App\Models\Payment::create(['user_id' => $me->user_id, 'amount' => 1000, 'date' => '2026-11-10', 'status' => 'Pending']);
+
+        $this->actingAs($me)->get('/tenant/dashboard')
+            ->assertSee('Next rent')
+            ->assertSee('due Tue, Dec 1')
+            ->assertSee('In 16 days')
+            ->assertSee('Paid and confirmed: <strong>₱9,000.00</strong>', false)
+            ->assertSee('Waiting for confirmation: <strong>₱1,000.00</strong>', false)
+            ->assertSee('class="is-now"', false);
+    }
 }

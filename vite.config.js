@@ -18,6 +18,7 @@ export default defineConfig({
                 'resources/css/room-detail.css', // RSYNC one-room page
                 'resources/js/room-detail.js',
                 'resources/css/tenant-dashboard.css', // RSYNC tenant dashboard
+                'resources/js/tenant-dashboard.js', // RSYNC tenant dashboard sections + menu
                 'resources/css/landlord-dashboard.css', // RSYNC landlord dashboard
                 'resources/js/landlord-dashboard.js',
                 'resources/css/maintenance.css',  // RSYNC maintenance page

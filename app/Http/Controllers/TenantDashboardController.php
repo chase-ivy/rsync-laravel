@@ -60,8 +60,17 @@ class TenantDashboardController extends Controller
         // New: unread notices (new / changed contract), newest first, at most 10.
         $notifications = $user->unreadNotifications()->latest()->limit(10)->get();
 
+        // Small summaries for the dashboard: when rent is due next, and what has been paid.
+        $today = now('Asia/Manila');
+        $nextDue = $bookings->first()?->nextRentDue($today);
+        $paidTotal = (float) $payments->where('status', 'Verified')->sum('amount');
+        $waitingTotal = (float) $payments->where('status', 'Pending')->sum('amount');
+
         return view('tenant.dashboard', [
             'notifications' => $notifications,
+            'nextDue' => $nextDue,
+            'paidTotal' => $paidTotal,
+            'waitingTotal' => $waitingTotal,
             'bookings' => $bookings,
             'applications' => $applications,
             'maintenance' => $maintenance,
