@@ -186,6 +186,13 @@ html:not(.js) .side-toggle{display:none;}
 .notices.has-new{border-color:var(--night);border-width:1.5px;}
 .notices .count{margin-left:2px;}
 .notice-list{list-style:none;}
+/* Without the page script the notices scroll inside the box instead of paging */
+html:not(.js) .notice-list{max-height:360px;overflow-y:auto;padding-right:6px;}
+.notice-pager{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);}
+.notice-pager[hidden]{display:none;}
+.notice-pager .btn i{font-size:18px;}
+.notice-pager .btn:disabled{opacity:.4;cursor:default;}
+.notice-pos{font-size:13.5px;color:var(--slate);}
 .notice-list li{padding:11px 0;border-top:1px solid var(--line);}
 .notice-list li:last-child{padding-bottom:0;}
 .notice-list p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:14px;}

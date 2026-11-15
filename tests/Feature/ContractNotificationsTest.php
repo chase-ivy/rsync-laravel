@@ -156,16 +156,18 @@ class ContractNotificationsTest extends TestCase
             ->assertSee('You have a new rental contract')->assertSee('Your rental contract was updated');
     }
 
-    public function test_dashboard_shows_at_most_ten(): void
+    public function test_dashboard_keeps_the_30_newest_with_paging(): void
     {
         [$landlord, $room, $tenant] = $this->setUpRoom();
         $c = Tenancy::create(['user_id' => $tenant->user_id, 'room_id' => $room->room_id, 'start_date' => '2026-12-01', 'end_date' => '2027-06-01', 'status' => 'Active']);
-        for ($i = 0; $i < 12; $i++) {
+        for ($i = 0; $i < 32; $i++) {
             $tenant->notifyNow(ContractNotice::for($c, ContractNotice::UPDATED), ['database']);
         }
 
         $page = $this->actingAs($tenant)->get('/tenant/dashboard')->getContent();
-        $this->assertSame(10, substr_count($page, 'Your rental contract was updated'));
+        $this->assertSame(30, substr_count($page, 'Your rental contract was updated'));
+        $this->assertStringContainsString('data-per-page="3"', $page);   // shown 3 at a time
+        $this->assertStringContainsString('data-notice-next', $page);
     }
 
     public function test_notices_belong_to_their_tenant_only(): void

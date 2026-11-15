@@ -123,3 +123,27 @@ if (side) {
     side.addEventListener('touchend', end);
     side.addEventListener('touchcancel', end);
 }
+
+// Notifications box: show 3 at a time, with Newer / Older buttons.
+const noticeList = document.getElementById('notice-list');
+const pager = document.querySelector('.notice-pager');
+if (noticeList && pager) {
+    const items = [...noticeList.children];
+    const per = Number(noticeList.dataset.perPage) || 3;
+    const pages = Math.ceil(items.length / per);
+    const prev = pager.querySelector('[data-notice-prev]');
+    const next = pager.querySelector('[data-notice-next]');
+    const pos = pager.querySelector('.notice-pos');
+    let page = 0;
+    const render = () => {
+        items.forEach((li, i) => { li.hidden = Math.floor(i / per) !== page; });
+        const from = page * per + 1, to = Math.min(items.length, from + per - 1);
+        pos.textContent = from === to ? `${from} of ${items.length}` : `${from}–${to} of ${items.length}`;
+        prev.disabled = page === 0;
+        next.disabled = page === pages - 1;
+    };
+    prev.addEventListener('click', () => { if (page > 0) { page--; render(); } });
+    next.addEventListener('click', () => { if (page < pages - 1) { page++; render(); } });
+    pager.hidden = false;
+    render();
+}

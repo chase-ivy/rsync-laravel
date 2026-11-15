@@ -179,7 +179,7 @@
                     @if ($notifications->isEmpty())
                         <p class="muted">No notifications yet.</p>
                     @else
-                    <ul class="notice-list">
+                    <ul class="notice-list" id="notice-list" data-per-page="3">
                         @foreach ($notifications as $n)
                             <li class="{{ $n->read_at ? 'is-read' : 'is-new' }}">
                                 <a href="{{ route('contracts.show', (int) ($n->data['tenancy_id'] ?? 0)) }}">{{ $n->data['title'] ?? 'Contract notice' }}</a>@unless ($n->read_at)<span class="new-tag">New</span>@endunless
@@ -188,6 +188,14 @@
                             </li>
                         @endforeach
                     </ul>
+                    @if ($notifications->count() > 3)
+                    {{-- Paging: 3 notices at a time (set up by the page script; without it the list simply scrolls). --}}
+                    <div class="notice-pager" hidden>
+                        <button type="button" class="btn btn-line btn-sm" data-notice-prev aria-controls="notice-list"><i class="bx bx-chevron-left" aria-hidden="true"></i>Newer</button>
+                        <span class="notice-pos" aria-live="polite"></span>
+                        <button type="button" class="btn btn-line btn-sm" data-notice-next aria-controls="notice-list">Older<i class="bx bx-chevron-right" aria-hidden="true"></i></button>
+                    </div>
+                    @endif
                     @endif
                 </div>
                 @if ($firstBooking)
