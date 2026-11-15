@@ -166,26 +166,30 @@
 
             <div class="ov-side">
                 @if ($glanceInSide) @yield('glance') @endif
-                @if ($notifications->isNotEmpty())
-                <div class="card notices">
+                <div class="card notices {{ $unreadCount ? 'has-new' : '' }}">
                     <div class="card-head">
-                        <h3 class="card-title"><i class="bx bx-bell" aria-hidden="true"></i>Notifications <span class="count">{{ $notifications->count() }}</span></h3>
+                        <h3 class="card-title"><i class="bx bx-bell" aria-hidden="true"></i>Notifications @if ($unreadCount)<span class="count" aria-label="{{ $unreadCount }} new">{{ $unreadCount }}</span>@endif</h3>
+                        @if ($unreadCount)
                         <form method="POST" action="{{ route('tenant.notifications.read') }}">
                             @csrf
                             <button type="submit" class="btn btn-line btn-sm">Mark all as read</button>
                         </form>
+                        @endif
                     </div>
+                    @if ($notifications->isEmpty())
+                        <p class="muted">No notifications yet.</p>
+                    @else
                     <ul class="notice-list">
                         @foreach ($notifications as $n)
-                            <li>
-                                <a href="{{ route('contracts.show', (int) ($n->data['tenancy_id'] ?? 0)) }}">{{ $n->data['title'] ?? 'Contract notice' }}</a>
+                            <li class="{{ $n->read_at ? 'is-read' : 'is-new' }}">
+                                <a href="{{ route('contracts.show', (int) ($n->data['tenancy_id'] ?? 0)) }}">{{ $n->data['title'] ?? 'Contract notice' }}</a>@unless ($n->read_at)<span class="new-tag">New</span>@endunless
                                 <p>{{ $n->data['message'] ?? '' }}</p>
                                 <time datetime="{{ $n->created_at?->toIso8601String() }}">{{ $n->created_at?->format('M d, Y \a\t h:i A') }}</time>
                             </li>
                         @endforeach
                     </ul>
+                    @endif
                 </div>
-                @endif
                 @if ($firstBooking)
                 <div class="card rent">
                     <h3 class="card-title">Next rent</h3>

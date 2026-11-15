@@ -43,6 +43,7 @@ class TenantDashboardTest extends TestCase
         $this->actingAs($this->user('t@gmail.com'))->get('/tenant/dashboard')
             ->assertSee('to find your next home.')
             ->assertSee('No applications yet.')
+            ->assertSee('No notifications yet.')
             ->assertSee('href="' . route('rooms.index') . '"', false)
             ->assertSee('href="' . route('logout') . '"', false);
     }

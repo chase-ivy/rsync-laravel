@@ -57,8 +57,9 @@ class TenantDashboardController extends Controller
             ->orderByDesc('payment_id')
             ->get();
 
-        // New: unread notices (new / changed contract), newest first, at most 10.
-        $notifications = $user->unreadNotifications()->latest()->limit(10)->get();
+        // Notices (new / changed contract), newest first. Read ones stay listed (greyed), so the tenant can look back.
+        $notifications = $user->notifications()->latest()->limit(10)->get();
+        $unreadCount = $user->unreadNotifications()->count();
 
         // Small summaries for the dashboard: when rent is due next, and what has been paid.
         $today = now('Asia/Manila');
@@ -68,6 +69,7 @@ class TenantDashboardController extends Controller
 
         return view('tenant.dashboard', [
             'notifications' => $notifications,
+            'unreadCount' => $unreadCount,
             'nextDue' => $nextDue,
             'paidTotal' => $paidTotal,
             'waitingTotal' => $waitingTotal,

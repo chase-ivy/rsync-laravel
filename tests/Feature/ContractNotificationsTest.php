@@ -134,7 +134,7 @@ class ContractNotificationsTest extends TestCase
         $this->assertSame('Available', $room->fresh()->status);
     }
 
-    public function test_dashboard_lists_unread_notices_and_mark_all_read(): void
+    public function test_dashboard_lists_notices_and_mark_all_read(): void
     {
         [$landlord, $room, $tenant] = $this->setUpRoom();
         $this->assign($landlord, $room, $tenant);
@@ -151,7 +151,9 @@ class ContractNotificationsTest extends TestCase
 
         $this->post(route('tenant.notifications.read'))->assertRedirect('/tenant/dashboard')->assertSessionHas('msg', 'All notifications were marked as read.');
         $this->assertSame(0, $tenant->unreadNotifications()->count());
-        $this->get('/tenant/dashboard')->assertDontSee('Mark all as read')->assertDontSee('You have a new rental contract');
+        // Read notices stay on the dashboard (no longer marked new), so the tenant can look back at them.
+        $this->get('/tenant/dashboard')->assertDontSee('Mark all as read')->assertDontSee('class="new-tag"', false)
+            ->assertSee('You have a new rental contract')->assertSee('Your rental contract was updated');
     }
 
     public function test_dashboard_shows_at_most_ten(): void

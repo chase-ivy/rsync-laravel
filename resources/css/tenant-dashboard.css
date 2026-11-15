@@ -183,7 +183,7 @@ html:not(.js) .side-toggle{display:none;}
 .ov-side .glance-row + .glance-row{box-shadow:0 -1px 0 var(--line);border-radius:0 0 10px 10px;}
 
 /* Notifications: things to act on, so they sit first in the side column */
-.notices{border-color:var(--night);border-width:1.5px;}
+.notices.has-new{border-color:var(--night);border-width:1.5px;}
 .notices .count{margin-left:2px;}
 .notice-list{list-style:none;}
 .notice-list li{padding:11px 0;border-top:1px solid var(--line);}
@@ -192,6 +192,9 @@ html:not(.js) .side-toggle{display:none;}
 .notice-list a{font-weight:700;text-decoration:underline;text-decoration-color:var(--sun);text-decoration-thickness:2px;text-underline-offset:3px;}
 .notice-list p{color:var(--slate);margin-top:2px;}
 .notice-list time{font-size:13px;color:var(--slate);}
+.new-tag{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:999px;background:var(--sun);color:var(--night);font-size:12px;font-weight:700;vertical-align:1px;}
+/* Already read: still listed, just quieter */
+.notice-list li.is-read a{font-weight:600;text-decoration-color:var(--line);}
 
 /* ── Payments & repairs: form on the left, history on the right ── */
 .split{display:grid;grid-template-columns:minmax(280px,380px) minmax(0,1fr);gap:20px;align-items:start;}
