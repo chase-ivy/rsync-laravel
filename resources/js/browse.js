@@ -83,3 +83,80 @@ if (browse) {
         window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(() => map.refresh(), 150); });
     }
 }
+
+// ---- Live search: suggestions under the keyword box while typing ("l" → Lourdes, Lower Magsaysay Ave, ...) ----
+document.querySelectorAll('[data-suggest]').forEach(input => {
+    const form = input.form;
+    const list = document.getElementById(input.getAttribute('aria-controls'));
+    if (!form || !list) return;
+    const ICON = { room: 'bx-home-alt', area: 'bx-map', street: 'bx-map-pin' };
+    const KIND = { room: 'Room', area: 'Location', street: 'Street' };
+    let items = [], active = -1, timer = null, last = '', ctrl = null;
+
+    const esc = s => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    // Bold the typed part: "lo" in "Lourdes" → <mark>Lo</mark>urdes
+    const mark = (label, q) => {
+        const i = label.toLowerCase().indexOf(q.toLowerCase());
+        return i < 0 ? esc(label) : esc(label.slice(0, i)) + '<mark>' + esc(label.slice(i, i + q.length)) + '</mark>' + esc(label.slice(i + q.length));
+    };
+    const open = yes => { list.hidden = !yes; input.setAttribute('aria-expanded', yes ? 'true' : 'false'); if (!yes) setActive(-1); };
+    const setActive = i => {
+        active = i;
+        [...list.children].forEach((li, n) => li.setAttribute('aria-selected', n === i ? 'true' : 'false'));
+        if (i >= 0 && list.children[i]) { input.setAttribute('aria-activedescendant', list.children[i].id); list.children[i].scrollIntoView({ block: 'nearest' }); }
+        else input.removeAttribute('aria-activedescendant');
+    };
+    const render = q => {
+        if (!items.length) {
+            list.innerHTML = `<li class="s-none" role="option" aria-disabled="true">No rooms, streets or places match “${esc(q)}”</li>`;
+        } else {
+            list.innerHTML = items.map((s, n) => `<li role="option" id="${list.id}-${n}" data-n="${n}"><i class="bx ${ICON[s.type]}" aria-hidden="true"></i>`
+                + `<span class="s-text">${mark(s.label, q)}${s.sub && s.type !== 'area' ? `<span class="s-sub">${esc(s.sub)}</span>` : ''}</span>`
+                + `<span class="s-kind">${KIND[s.type]}</span></li>`).join('');
+        }
+        open(true);
+    };
+    // Picking a suggestion: a room opens its page; a location picks it in the Location box; a street searches for it.
+    const choose = n => {
+        const s = items[n];
+        if (!s) return;
+        open(false);
+        if (s.type === 'room' && s.url) { window.location.href = s.url; return; }
+        const area = form.querySelector('select[name="area"]');
+        if (s.type === 'area' && area && [...area.options].some(o => o.value === s.label)) {
+            area.value = s.label;
+            input.value = '';
+        } else {
+            input.value = s.label;
+        }
+        form.requestSubmit();
+    };
+    const fetchNow = async () => {
+        const q = input.value.trim();
+        if (q === last) return;
+        last = q;
+        if (!q) { items = []; open(false); return; }
+        ctrl?.abort();
+        ctrl = new AbortController();
+        try {
+            const res = await fetch(`${input.dataset.suggest}?q=${encodeURIComponent(q)}`, { headers: { Accept: 'application/json' }, signal: ctrl.signal });
+            if (!res.ok) return;
+            items = await res.json();
+            if (input.value.trim() === q && document.activeElement === input) render(q);
+        } catch (e) { /* typing again cancelled it, or offline: no suggestions */ }
+    };
+
+    input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(fetchNow, 150); });
+    input.addEventListener('focus', () => { if (input.value.trim() && items.length) render(input.value.trim()); });
+    input.addEventListener('keydown', e => {
+        if (list.hidden || !items.length) { if (e.key === 'Escape') open(false); return; }
+        if (e.key === 'ArrowDown') { e.preventDefault(); setActive((active + 1) % items.length); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(active <= 0 ? items.length - 1 : active - 1); }
+        else if (e.key === 'Enter' && active >= 0) { e.preventDefault(); choose(active); }
+        else if (e.key === 'Escape') { e.preventDefault(); open(false); }
+    });
+    // mousedown (not click) so the box doesn't lose focus and close first
+    list.addEventListener('mousedown', e => { const li = e.target.closest('li[data-n]'); if (li) { e.preventDefault(); choose(Number(li.dataset.n)); } });
+    input.addEventListener('blur', () => setTimeout(() => open(false), 120));
+    form.addEventListener('submit', () => open(false));
+});

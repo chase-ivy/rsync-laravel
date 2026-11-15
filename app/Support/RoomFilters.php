@@ -66,6 +66,51 @@ class RoomFilters
         ];
     }
 
+    /**
+     * Search suggestions while typing in the keyword box (like the old PHP "live search"):
+     * rooms, areas (barangays) and streets of the listed rooms that contain the typed text.
+     * Those that START with the text come first. At most $limit, no duplicates.
+     *
+     * @return array<int, array{type: string, label: string, sub: ?string, url: ?string}>
+     */
+    public static function suggest(string $text, int $limit = 8): array
+    {
+        $text = mb_strtolower(trim(mb_substr($text, 0, 50)));
+        if ($text === '') {
+            return [];
+        }
+
+        $found = [];   // lowercase label => [rank, item]
+        $add = function (string $type, string $label, ?string $sub = null, ?string $url = null) use ($text, &$found) {
+            $label = trim(preg_replace('/\s+/u', ' ', $label));
+            $lower = mb_strtolower($label);
+            $pos = mb_strpos($lower, $text);
+            if ($label === '' || $pos === false || isset($found[$type . '|' . $lower])) {
+                return;
+            }
+            // 0 = starts with the text, 1 = a word starts with it, 2 = somewhere inside.
+            $rank = $pos === 0 ? 0 : (preg_match('/(^|[\s\-.,\/])' . preg_quote($text, '/') . '/u', $lower) ? 1 : 2);
+            $found[$type . '|' . $lower] = [$rank, ['type' => $type, 'label' => $label, 'sub' => $sub, 'url' => $url]];
+        };
+
+        foreach (Room::withOpenSlots()->orderBy('room_name')->get(['room_id', 'room_name', 'address']) as $room) {
+            $area = self::areaOf($room->address);
+            $add('room', (string) $room->room_name, $area, route('rooms.show', $room->room_id));
+            if ($area) {
+                $add('area', $area);
+            }
+            // The street: the first part of the address without the house number. "12 Lower Magsaysay Ave, ..." => "Lower Magsaysay Ave"
+            $street = trim(preg_replace('/^\s*(?:#|no\.?\s*)?\d+[a-z]?\b[\s,.-]*/iu', '', explode(',', (string) $room->address)[0]));
+            if ($street !== '' && ! preg_match('/^(?:brgy|bgy|barangay)\b/iu', $street)) {
+                $add('street', $street, $area);
+            }
+        }
+
+        uasort($found, fn ($a, $b) => [$a[0], $a[1]['label']] <=> [$b[0], $b[1]['label']]);
+
+        return array_values(array_map(fn ($f) => $f[1], array_slice($found, 0, $limit)));
+    }
+
     /** Reads the filters from the address bar. $areas = the areas that exist (an unknown area is ignored). */
     public static function fromRequest(Request $request, array $areas): self
     {

@@ -22,6 +22,14 @@ class RoomController extends Controller
         ]);
     }
 
+    /** GET /rooms/suggest?q=lo — suggestions for the keyword box while typing (JSON). */
+    public function suggest(Request $request)
+    {
+        $q = $request->query('q');
+
+        return response()->json(RoomFilters::suggest(is_string($q) ? $q : ''));   // ?q[]=x must not crash
+    }
+
     /** GET /rooms/{id} — like room_detail.php?id=... ; unknown room → back to the list. */
     public function show(string $id)
     {

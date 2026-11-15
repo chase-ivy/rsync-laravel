@@ -162,3 +162,20 @@
     .c-price{font-size:16px;}
     .view-btn{padding:7px 12px;}
 }
+
+/* ---- Suggestions under the keyword box (live search) ---- */
+.f-suggest{z-index:5;}
+.suggest{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:1200;margin:0;padding:6px;list-style:none;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 32px rgba(17,17,17,.14);max-height:320px;overflow-y:auto;}
+.suggest[hidden]{display:none;}
+.suggest li{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:14px;color:var(--ink);}
+.suggest li[aria-selected="true"],.suggest li:hover{background:rgba(232,160,32,.13);}
+.suggest li>i{font-size:18px;color:var(--ink3);flex-shrink:0;}
+.suggest .s-text{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.suggest mark{background:none;color:inherit;font-weight:700;}
+.suggest .s-sub{margin-left:6px;color:var(--ink3);font-size:13px;}
+.suggest .s-kind{flex-shrink:0;font-size:12px;color:var(--ink3);}
+.suggest .s-none{cursor:default;color:var(--ink3);}
+.suggest .s-none:hover{background:none;}
+/* The home search card scrolls on short screens; let the open list hang outside it instead of being cut off. */
+.search-card:has(.suggest:not([hidden])){overflow:visible;}
+@media (min-width:761px){ .suggest{right:auto;min-width:100%;width:max-content;max-width:min(420px,90vw);} }

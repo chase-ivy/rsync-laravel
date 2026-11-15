@@ -6,7 +6,9 @@
 <form class="filters{{ ($stacked ?? false) ? ' filters--stacked' : '' }}" method="get" action="{{ $action }}" role="search" aria-label="Find a room" data-filters>
     <label class="f-field f-key">
         <span class="f-label">Keyword</span>
-        <span class="f-box"><i class="bx bx-search" aria-hidden="true"></i><input type="search" name="name" value="{{ $filters->name }}" placeholder="Room name or street" maxlength="100"></span>
+        <span class="f-box f-suggest"><i class="bx bx-search" aria-hidden="true"></i><input type="search" name="name" value="{{ $filters->name }}" placeholder="Room name or street" maxlength="100"
+            autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="suggest-{{ $uid = substr(md5($action . ($stacked ?? '')), 0, 6) }}" data-suggest="{{ route('rooms.suggest') }}">
+            <ul class="suggest" id="suggest-{{ $uid }}" role="listbox" aria-label="Suggestions" hidden></ul></span>
     </label>
 
     <label class="f-field">

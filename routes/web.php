@@ -29,6 +29,7 @@ use Illuminate\Support\Facades\Route;
 // Public pages (index.php, rooms.php, room_detail.php)
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/rooms', [RoomController::class, 'index'])->name('rooms.index');
+Route::get('/rooms/suggest', [RoomController::class, 'suggest'])->middleware('throttle:120,1')->name('rooms.suggest');   // before /rooms/{id}
 Route::get('/rooms/{id}', [RoomController::class, 'show'])->name('rooms.show');
 Route::post('/rooms/apply', [RoomApplicationController::class, 'store'])->middleware('throttle:20,1')->name('rooms.apply');
 
