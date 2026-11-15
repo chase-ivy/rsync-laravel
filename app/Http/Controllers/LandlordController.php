@@ -79,6 +79,8 @@ class LandlordController extends Controller
             'description' => $request->input('description'),
             'status' => 'Available',
             'max_occupants' => max(1, (int) $request->input('max_occupants')),
+            'latitude' => $this->coordinate($request, 'latitude'),
+            'longitude' => $this->coordinate($request, 'longitude'),
         ]);        $saved = $this->saveImages($room, $request->file('images', []), self::MAX_IMAGES);
         if ($saved === 0) {
             // Every upload failed: don't keep a room without photos.
@@ -108,7 +110,10 @@ class LandlordController extends Controller
             'price' => (int) $request->input('price'),
             'description' => $request->input('description'),
             'max_occupants' => max(1, (int) $request->input('max_occupants')),
-        ]);
+        ] + ($request->has('latitude') || $request->has('longitude') ? [   // the form always sends the pin; an empty one removes it
+            'latitude' => $this->coordinate($request, 'latitude'),
+            'longitude' => $this->coordinate($request, 'longitude'),
+        ] : []));
 
         $slots = max(0, self::MAX_IMAGES - $room->images()->count());
         $saved = $this->saveImages($room, $request->file('images', []), $slots);
@@ -191,6 +196,9 @@ class LandlordController extends Controller
             'price' => ['required', 'integer', 'min:0'],
             'max_occupants' => ['required', 'integer', 'min:1', 'max:100'],
             'description' => ['nullable', 'string', 'max:5000'],
+            // Map pin: optional, but latitude and longitude come together.
+            'latitude' => ['nullable', 'numeric', 'between:-90,90', 'required_with:longitude'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180', 'required_with:latitude'],
             'images' => ['array', 'max:' . self::MAX_IMAGES],
             // Security fix: the old page saved any file type; now only real pictures up to 5 MB.
             'images.*' => ['image', 'mimes:jpg,jpeg,png,gif,webp', 'max:5120'],
@@ -233,6 +241,12 @@ class LandlordController extends Controller
 
         return $saved;
     }
+    /** A map coordinate from the form, rounded to 7 decimals (about 1 cm), or null when empty. */
+    private function coordinate(Request $request, string $key): ?float
+    {
+        return $request->filled($key) ? round((float) $request->input($key), 7) : null;
+    }
+
     private function back(string $msg): RedirectResponse
     {
         return redirect()->route('landlord.dashboard')->with('msg', $msg);

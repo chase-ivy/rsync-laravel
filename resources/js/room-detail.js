@@ -1,5 +1,6 @@
 // RSYNC room page (was the <script> at the bottom of room_detail.php): photo gallery + Apply.
 import { submitApplication } from './apply.js';
+import { initRoomMap } from './maps.js';
 
 const allImages = JSON.parse(document.body.dataset.images || '[]');
 let lbIndex = 0;
@@ -34,3 +35,6 @@ document.addEventListener('keydown', e => {
 });
 
 window.applyForRoom = submitApplication;
+// ---- Map with this room's pin (only on rooms that have one) ----
+const roomMapEl = document.getElementById('room-map');
+if (roomMapEl) initRoomMap(roomMapEl, Number(roomMapEl.dataset.lat), Number(roomMapEl.dataset.lng), roomMapEl.dataset.name);

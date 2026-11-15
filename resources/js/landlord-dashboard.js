@@ -2,7 +2,18 @@
 // Same windows and steps as before. Changes: each action has its own address (data-url-* on <body>),
 // requests carry Laravel's CSRF token, and names/emails are escaped before they are shown.
 
+import { createPicker } from './maps.js';
+
 const page = document.body.dataset;
+
+// Pin pickers inside the Add Room and Edit Room windows (null if the map library could not load).
+const addPicker = createPicker(document.querySelector('#addModal [data-picker]'));
+const editPicker = createPicker(document.querySelector('#editModal [data-picker]'));
+
+window.openAdd = function () {
+    document.getElementById('addModal').classList.add('show');
+    addPicker?.show();   // after the window is visible, so the map can measure itself
+};
 
 window.closeModal = function (id) { document.getElementById(id).classList.remove('show'); };
 
@@ -42,6 +53,7 @@ window.openEdit = function (btn) {
     document.getElementById('existing_grid').innerHTML = '<span class="no-existing">Loading…</span>';
     document.getElementById('edit_grid').innerHTML = '';
     document.getElementById('editModal').classList.add('show');
+    editPicker?.show(r.lat, r.lng);
 
     loadExistingImages(r.id);
 };

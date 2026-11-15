@@ -23,6 +23,8 @@ class Room extends Model
         'description',
         'status',
         'max_occupants',
+        'latitude',
+        'longitude',
     ];
 
     protected function casts(): array
@@ -31,6 +33,8 @@ class Room extends Model
             'owner_id' => 'integer',
             'price' => 'integer',
             'max_occupants' => 'integer',
+            'latitude' => 'float',
+            'longitude' => 'float',
             'created_at' => 'datetime',
         ];
     }
@@ -56,6 +60,12 @@ class Room extends Model
         return $query->whereRaw(
             "(SELECT COUNT(*) FROM tenants WHERE tenants.room_id = rooms.room_id AND tenants.status = 'Active') < COALESCE(rooms.max_occupants, 1)"
         );
+    }
+
+    /** True when the landlord has dropped a pin for this room. */
+    public function hasLocation(): bool
+    {
+        return $this->latitude !== null && $this->longitude !== null;
     }
 
     /** The landlord who owns the room (can be empty). */

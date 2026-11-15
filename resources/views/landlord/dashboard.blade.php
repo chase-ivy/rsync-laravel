@@ -2,6 +2,10 @@
 
 @section('title', 'Dashboard · RSYNC')
 
+@push('head')
+@include('partials.leaflet')
+@endpush
+
 @section('fonts')
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/boxicons@latest/css/boxicons.min.css" rel="stylesheet">
@@ -36,7 +40,7 @@ data-url-reject="{{ route('landlord.applications.reject') }}"
 <div class="wrap">
     <div class="top-bar">
         <h1>Room Management</h1>
-        <button class="btn btn-dark" onclick="document.getElementById('addModal').classList.add('show')">+ Add Room</button>
+        <button class="btn btn-dark" onclick="openAdd()">+ Add Room</button>
     </div>
 
     @if ($msg)<div class="toast {{ $isErr ? 'err' : '' }}">{{ $msg }}</div>@endif
@@ -81,7 +85,8 @@ data-url-reject="{{ route('landlord.applications.reject') }}"
                 {{-- Room details travel as data-* attributes (safe for quotes and line breaks in the text). --}}
                 <button class="btn btn-amber btn-sm" onclick="openEdit(this)"
                         data-id="{{ $row->room_id }}" data-name="{{ $row->room_name }}" data-price="{{ $row->price }}"
-                        data-desc="{{ $row->description }}" data-max="{{ $max }}">Edit</button>
+                        data-desc="{{ $row->description }}" data-max="{{ $max }}"
+                        data-lat="{{ $row->latitude }}" data-lng="{{ $row->longitude }}">Edit</button>
                 <button class="btn btn-red btn-sm"   onclick="openRemove({{ $row->room_id }})">Remove Tenant</button>
                 <button class="btn btn-ghost btn-sm" onclick="openApplicants({{ $row->room_id }})">Applicants</button>
                 <button class="btn btn-ghost btn-sm" onclick="delRoom({{ $row->room_id }})">Delete</button>
@@ -107,6 +112,7 @@ data-url-reject="{{ route('landlord.applications.reject') }}"
             <div class="field"><label>Max Occupants</label><input type="number" name="max_occupants" value="1" min="1" required></div>
         </div>
         <div class="field"><label>Images — at least 1, up to 8 · first = cover</label><div class="img-grid" id="add_grid"></div></div>
+        @include('partials.location-picker')
         <div class="field"><label>Description</label><textarea name="description" placeholder="Describe the room…"></textarea></div>
         <div class="modal-foot">
             <button type="button" class="btn btn-ghost" onclick="closeModal('addModal')">Cancel</button>
@@ -146,6 +152,7 @@ data-url-reject="{{ route('landlord.applications.reject') }}"
             <div class="img-grid" id="edit_grid"></div>
         </div>
 
+        @include('partials.location-picker')
         <div class="field"><label>Description</label><textarea name="description" id="edit_desc"></textarea></div>
         <div class="modal-foot">
             <button type="button" class="btn btn-ghost" onclick="closeModal('editModal')">Cancel</button>

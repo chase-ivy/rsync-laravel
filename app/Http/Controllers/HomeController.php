@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Room;
+use App\Support\RoomPhotos;
 use Illuminate\Http\Request;
 
 /**
@@ -25,6 +26,19 @@ class HomeController extends Controller
             'total' => $all->count(),
             'available' => $available->count(),
             'occupied' => $all->count() - $available->count(),
+            // Map pins: the rooms the public can see (full rooms are hidden) that have a pin.
+            'mapRooms' => $all
+                ->filter(fn (Room $r) => $r->hasLocation() && (int) $r->current_occupants < max(1, (int) $r->max_occupants))
+                ->map(fn (Room $r) => [
+                    'id' => $r->room_id,
+                    'name' => $r->room_name,
+                    'price' => $r->price,
+                    'slots_left' => max(1, (int) $r->max_occupants) - (int) $r->current_occupants,
+                    'image' => $r->cover_image ? RoomPhotos::url($r->cover_image) : null,
+                    'lat' => $r->latitude,
+                    'lng' => $r->longitude,
+                ])
+                ->values(),
                         // Full rooms are not shown (available first, then the rest that still have a free slot).
             'featured' => $available->concat($all->where('status', '!==', 'Available'))
                 ->filter(fn (Room $r) => (int) $r->current_occupants < max(1, (int) $r->max_occupants))

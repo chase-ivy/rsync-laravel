@@ -2,6 +2,10 @@
 
 @section('title', 'RSYNC — Find Your Room')
 
+@push('head')
+@include('partials.leaflet')
+@endpush
+
 @section('fonts')
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/boxicons@latest/css/boxicons.min.css" rel="stylesheet">
@@ -43,6 +47,19 @@ data-dashboard-url="{{ route('tenant.dashboard') }}"
         <div class="stat"><div class="stat-num">{{ $occupied }}</div><div class="stat-label">Occupied</div></div>
     </div>
 </div>
+
+@if ($mapRooms->isNotEmpty())
+<div class="section map-section" id="map-section">
+    <div class="sec-head">
+        <div>
+            <div class="sec-label">Explore</div>
+            <div class="sec-title">Rooms on the map</div>
+        </div>
+        <span class="map-count">{{ $mapRooms->count() }} {{ $mapRooms->count() === 1 ? 'room' : 'rooms' }} pinned</span>
+    </div>
+    <div id="rooms-map" data-rooms='@json($mapRooms)'></div>
+</div>
+@endif
 
 <div class="section">
     <div class="sec-head">

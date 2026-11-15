@@ -1,5 +1,6 @@
 // RSYNC home page (was the <script> at the bottom of index.php).
 import { submitApplication } from './apply.js';
+import { initRoomsMap } from './maps.js';
 
 const page = document.body.dataset;
 
@@ -63,3 +64,6 @@ window.setBilling = function (mode) {
     document.getElementById('o-p').innerHTML = mode === 'annual' ? '₱' + mPrices.p.toLocaleString() + '/mo billed monthly' : '&nbsp;';
     document.getElementById('o-e').innerHTML = mode === 'annual' ? '₱' + mPrices.e.toLocaleString() + '/mo billed monthly' : '&nbsp;';
 };
+// ---- Map of listed rooms (the section only exists when at least one room has a pin) ----
+const roomsMapEl = document.getElementById('rooms-map');
+if (roomsMapEl) initRoomsMap(roomsMapEl, JSON.parse(roomsMapEl.dataset.rooms || '[]'), page.roomUrl);

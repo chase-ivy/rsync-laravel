@@ -11,6 +11,7 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <title>@yield('title')</title>
 @yield('fonts')
+@stack('head')
 @vite(array_filter([$css ?? null, $js ?? null]))
 </head>
 <body @yield('body_attrs')>

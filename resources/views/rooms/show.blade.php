@@ -2,6 +2,12 @@
 
 @section('title'){{ $room->room_name }} · RSYNC @endsection
 
+@if ($room->hasLocation())
+@push('head')
+@include('partials.leaflet')
+@endpush
+@endif
+
 @section('fonts')
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 @endsection
@@ -55,6 +61,16 @@ data-dashboard-url="{{ route('tenant.dashboard') }}"
                          onclick="switchImg(this, this.src, {{ $i }})"
                          onerror="this.style.display='none'">
                 @endforeach
+            </div>
+            @endif
+
+            @if ($room->hasLocation())
+            <div class="loc-card">
+                <div class="loc-head">
+                    <h4>Location</h4>
+                    <a href="https://www.google.com/maps/search/?api=1&query={{ $room->latitude }},{{ $room->longitude }}" target="_blank" rel="noopener">Open in Google Maps ↗</a>
+                </div>
+                <div id="room-map" data-lat="{{ $room->latitude }}" data-lng="{{ $room->longitude }}" data-name="{{ $room->room_name }}"></div>
             </div>
             @endif
         </div>
