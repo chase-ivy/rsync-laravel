@@ -54,7 +54,7 @@
         </div>
         <div class="tbl-wrap">
             <table>
-                <thead><tr><th>Contract ID</th><th>Tenant Name</th><th>Room</th><th>Start Date</th><th>End Date</th><th>Status</th><th>Document</th></tr></thead>
+                <thead><tr><th>Contract ID</th><th>Tenant Name</th><th>Room</th><th>Start Date</th><th>End Date</th><th>Status</th><th>Accepted</th><th>Document</th></tr></thead>
                 <tbody>
                 @forelse ($contracts as $c)
                     @php
@@ -68,10 +68,17 @@
                         <td>{{ $c->start_date->format('Y-m-d') }}</td>
                         <td>{{ $c->end_date->format('Y-m-d') }}</td>
                         <td><span class="badge badge-{{ strtolower($label) }}">{{ $label }}</span></td>
+                        <td>
+                            @if ($c->isAccepted())
+                                <span class="badge badge-accepted" title="Accepted on {{ $c->acceptedAtText() }}">Accepted</span>
+                            @else
+                                <span class="badge badge-waiting">Waiting</span>
+                            @endif
+                        </td>
                         <td><a href="{{ route('contracts.show', $c->tenant_id) }}" class="view-link" target="_blank" rel="noopener">View</a></td>
                     </tr>
                 @empty
-                    <tr><td colspan="7" class="muted">No contracts yet. Landlords create them with "Assign".</td></tr>
+                    <tr><td colspan="8" class="muted">No contracts yet. Landlords create them with "Assign".</td></tr>
                 @endforelse
                 </tbody>
             </table>

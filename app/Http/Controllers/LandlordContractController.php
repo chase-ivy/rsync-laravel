@@ -6,6 +6,8 @@ use App\Http\Controllers\Admin\AdminTenantController;
 use App\Models\ContractTemplate;
 use App\Models\Room;
 use App\Models\Tenancy;
+use App\Notifications\ContractNotice;
+use App\Support\ContractNotifier;
 use App\Support\ContractDefaults;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -119,20 +121,37 @@ class LandlordContractController extends Controller
             'end_date.after' => 'The end date must be after the start date (' . Carbon::parse($start)->format('M j, Y') . ').',
         ]);
         $data = $this->validateTerms($request);
-
-        $tenancy->update($data + [
+        $new = $data + [
             'monthly_rent' => round((float) $extra['monthly_rent'], 2),
             'end_date' => $extra['end_date'],
-            'terms_updated_at' => now(),
-        ]);
+        ];
+
+        // Did anything in the agreement really change (compared with what the tenant sees now)?
+        $changed = $this->agreementOf($tenancy->contractTerms() + ['end_date' => $tenancy->end_date->format('Y-m-d')])
+            !== $this->agreementOf($new);
+        $wasAccepted = $tenancy->isAccepted();
+
+        $tenancy->update($new + ['terms_updated_at' => now()]
+            // A changed contract must be accepted again by the tenant.
+            + ($changed ? ['accepted_at' => null, 'accepted_ip' => null] : []));
 
         // Optional: use these terms for my future contracts too.
         if ($request->boolean('save_as_default')) {
             ContractTemplate::updateOrCreate(['user_id' => $request->user()->user_id], $data);
         }
 
+        $code = AdminTenantController::code($tenancy->tenant_id);
+        if (! $changed) {
+            return redirect()->route('landlord.tenants')
+                ->with('msg', "Contract {$code} was saved. Nothing in the agreement changed, so the tenant was not notified.");
+        }
+
+        // Tell the tenant (dashboard notice + email); a failed email never undoes the change.
+        ContractNotifier::send($tenancy, ContractNotice::UPDATED);
+
         return redirect()->route('landlord.tenants')
-            ->with('msg', 'Contract ' . AdminTenantController::code($tenancy->tenant_id) . ' was updated. The tenant sees the new terms on their contract.');
+            ->with('msg', "Contract {$code} was updated. The tenant sees the new terms on their contract"
+                . ($wasAccepted ? ' and has to accept the contract again.' : ' and was asked to accept it.'));
     }
 
     // ---------------------------------------------------------------- helpers
@@ -179,6 +198,23 @@ class LandlordContractController extends Controller
             'utilities_note' => $note !== '' ? $note : null,
             'terms' => ContractDefaults::toLines($data['terms'] ?? ''),
             'house_rules' => ContractDefaults::toLines($data['house_rules'] ?? ''),
+        ];
+    }
+
+    /** The parts of a contract the tenant agrees to, in a form that can be compared with ===. */
+    private function agreementOf(array $t): array
+    {
+        $money = fn ($v) => $v === null ? null : number_format((float) $v, 2, '.', '');
+
+        return [
+            'monthly_rent' => $money($t['monthly_rent'] ?? null),
+            'end_date' => (string) ($t['end_date'] ?? ''),
+            'repairs_policy' => (string) ($t['repairs_policy'] ?? ''),
+            'deposit' => $money($t['deposit'] ?? null),
+            'advance_months' => isset($t['advance_months']) ? (int) $t['advance_months'] : null,
+            'utilities_note' => filled($t['utilities_note'] ?? null) ? (string) $t['utilities_note'] : null,
+            'terms' => array_values((array) ($t['terms'] ?? [])),
+            'house_rules' => array_values((array) ($t['house_rules'] ?? [])),
         ];
     }
 

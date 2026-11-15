@@ -84,6 +84,7 @@ class LandlordController extends Controller
             'longitude' => $this->coordinate($request, 'longitude'),
             'address' => $this->address($request),
             'amenities' => $this->amenities($request),
+            'price_type' => $request->input('price_type') ?: Room::DEFAULT_PRICE_TYPE,
         ]);
         $saved = $this->saveImages($room, $request->file('images', []), self::MAX_IMAGES);
         if ($saved === 0) {
@@ -118,6 +119,8 @@ class LandlordController extends Controller
             'max_occupants' => max(1, (int) $request->input('max_occupants')),
             'address' => $this->address($request),
             'amenities' => $this->amenities($request),   // unticked boxes are not sent, so a missing list means "none"
+            // Old forms without the choice keep the room's current price type.
+            'price_type' => $request->input('price_type') ?: ($room->price_type ?: Room::DEFAULT_PRICE_TYPE),
         ] + ($request->has('latitude') || $request->has('longitude') ? [   // the form always sends the pin; an empty one removes it
             'latitude' => $this->coordinate($request, 'latitude'),
             'longitude' => $this->coordinate($request, 'longitude'),
@@ -205,6 +208,8 @@ class LandlordController extends Controller
             'amenities' => ['nullable', 'array'],
             'amenities.*' => ['string', 'in:' . implode(',', array_keys(Room::AMENITIES))],
             'price' => ['required', 'integer', 'min:0'],
+            // The window always sends it (required radio); a request without it keeps the default / current type.
+            'price_type' => ['nullable', 'string', 'in:' . implode(',', array_keys(Room::PRICE_TYPES))],
             'max_occupants' => ['required', 'integer', 'min:1', 'max:100'],
             'description' => ['nullable', 'string', 'max:5000'],
             // Map pin: optional, but latitude and longitude come together.
@@ -217,6 +222,7 @@ class LandlordController extends Controller
             'address.required' => 'Please enter the address of the room (street and barangay), e.g. 12 Lower Magsaysay Ave, Brgy. Lourdes.',
             'address.min' => 'Please enter the full address of the room (street and barangay).',
             'address.max' => 'The address must be 255 characters or fewer.',
+            'price_type.in' => 'Please choose whether the price is per person or for the whole room.',
             'amenities.array' => 'Please choose amenities from the list.',
             'amenities.*.in' => 'Please choose amenities from the list.',
             'images.*.image' => 'Only picture files can be uploaded.',

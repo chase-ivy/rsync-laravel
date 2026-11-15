@@ -88,3 +88,6 @@ td.muted{padding:24px 16px;}
 .view-link:hover{text-decoration:underline;}
 @media(max-width:860px){.form-grid,.form-grid-5{grid-template-columns:1fr;}}
 @media(max-width:640px){nav{padding:0 16px;}nav .nav-links a{padding:6px 8px;font-size:12px;}.wrap{width:96%;}}
+/* Contract acceptance (Tenants & Contracts) */
+.badge-accepted{background:rgba(5,150,105,.12);color:var(--green);}
+.badge-waiting{background:rgba(245,158,11,.12);color:#92400e;}

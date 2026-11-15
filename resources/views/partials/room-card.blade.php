@@ -23,7 +23,9 @@
         </div>
         <p class="c-desc">{{ $r->description ?? '' }}</p>
         <div class="c-foot">
-            <div class="c-price">₱{{ number_format($r->price) }}<span>/mo</span></div>
+            <div class="c-price">₱{{ number_format($r->price) }}<span> / {{ $r->isWholeRoomPrice() ? 'room' : 'person' }}</span>
+                @if ($r->isWholeRoomPrice())<div class="c-split">{{ $r->splitNote() }}</div>@endif
+            </div>
             @if ($withApply)
                 <div style="display:flex;gap:6px;">
                     <a href="{{ route('rooms.show', $r->room_id) }}" class="view-btn">View <i class="bx bx-right-arrow-alt"></i></a>

@@ -34,6 +34,9 @@ class Tenancy extends Model
         'terms',
         'house_rules',
         'terms_updated_at',
+        // The tenant's "I agree" (empty = not accepted yet, or changed by the landlord since).
+        'accepted_at',
+        'accepted_ip',
     ];
 
     /** Choices for "Update Tenant Status" (admin Tenants page, from tenants.php). */
@@ -52,6 +55,7 @@ class Tenancy extends Model
             'terms' => 'array',
             'house_rules' => 'array',
             'terms_updated_at' => 'datetime',
+            'accepted_at' => 'datetime',
         ];
     }
 
@@ -63,6 +67,18 @@ class Tenancy extends Model
     public function room(): BelongsTo
     {
         return $this->belongsTo(Room::class, 'room_id', 'room_id');
+    }
+
+    /** True when the tenant has accepted the current version of this contract. */
+    public function isAccepted(): bool
+    {
+        return $this->accepted_at !== null;
+    }
+
+    /** When it was accepted, in Philippine time, e.g. "November 15, 2026 at 6:30 PM". */
+    public function acceptedAtText(): ?string
+    {
+        return $this->accepted_at?->copy()->setTimezone('Asia/Manila')->format('F j, Y \a\t g:i A');
     }
 
     /** True when this contract has its own saved copy of the terms (contracts made before that feature don't). */

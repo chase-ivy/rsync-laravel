@@ -49,6 +49,11 @@ window.openEdit = function (btn) {
     document.getElementById('edit_price').value = r.price;
     document.getElementById('edit_desc').value = r.desc;
     document.getElementById('edit_max').value = r.max;
+    // Price type: per person (default) or for the whole room.
+    const priceType = r.priceType === 'whole_room' ? 'whole_room' : 'per_person';
+    document.querySelectorAll('#editModal input[name="price_type"]').forEach(radio => {
+        radio.checked = radio.value === priceType;
+    });
 
     // Address: rooms added before addresses existed get a reminder; once a room has one it stays required.
     const addr = document.getElementById('edit_address');
@@ -179,8 +184,11 @@ function makeSlot(gridId, i, isCover) {
 }
 
 // ── ASSIGN ──
-window.openAssign = function (rid) {
+// userId (optional) preselects a tenant, e.g. from "Assign to room" in the Applicants window.
+window.openAssign = function (rid, userId) {
     document.getElementById('ar_id').value = rid;
+    const who = document.getElementById('ar_user');
+    if (userId && [...who.options].some(o => o.value === String(userId))) who.value = String(userId);
     const today = new Date(), end = new Date(today); end.setMonth(end.getMonth() + 1);
     document.getElementById('ar_start').value = today.toISOString().split('T')[0];
     document.getElementById('ar_end').value = end.toISOString().split('T')[0];
@@ -252,11 +260,20 @@ function renderApplicants(apps) {
                 ${app.status === 'Pending' ? `
                     <button class="btn btn-green btn-sm" onclick="verifyApplicant(${app.application_id},${app.user_id})">Verify</button>
                     <button class="btn btn-red btn-sm" onclick="rejectApplicant(${app.application_id})">Reject</button>
-                ` : `<span style="font-size:11px;color:var(--ink3);">No action</span>`}
+                ` : app.status === 'Verified' ? (app.can_assign
+                    ? `<button class="btn btn-green btn-sm" onclick="assignApplicant(${Number(app.user_id)})">Assign to room</button>`
+                    : `<span style="font-size:11px;color:var(--ink3);">${esc(app.reason || 'Cannot assign')}</span>`)
+                : `<span style="font-size:11px;color:var(--ink3);">No action</span>`}
             </div>
         </div>
     `).join('');
 }
+
+// "Assign to room": opens the Assign Tenant window with this room and applicant already chosen.
+window.assignApplicant = function (userId) {
+    closeModal('applicantsModal');
+    openAssign(currentApplicantsRoomId, userId);
+};
 
 window.verifyApplicant = function (appId, userId) {
     if (!confirm('Verify this applicant?')) return;

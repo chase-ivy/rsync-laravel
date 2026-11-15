@@ -7,6 +7,7 @@ use App\Models\Payment;
 use App\Models\RoomApplication;
 use App\Models\RoomImage;
 use App\Models\Tenancy;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 /**
@@ -56,7 +57,11 @@ class TenantDashboardController extends Controller
             ->orderByDesc('payment_id')
             ->get();
 
+        // New: unread notices (new / changed contract), newest first, at most 10.
+        $notifications = $user->unreadNotifications()->latest()->limit(10)->get();
+
         return view('tenant.dashboard', [
+            'notifications' => $notifications,
             'bookings' => $bookings,
             'applications' => $applications,
             'maintenance' => $maintenance,
@@ -64,5 +69,13 @@ class TenantDashboardController extends Controller
             'msg' => $isErr ? substr($msg, 4) : $msg,
             'isErr' => $isErr,
         ]);
+    }
+
+    /** POST /tenant/notifications/read — "Mark all as read" in the Notifications box. */
+    public function markNotificationsRead(Request $request): RedirectResponse
+    {
+        $request->user()->unreadNotifications()->update(['read_at' => now()]);
+
+        return redirect()->route('tenant.dashboard')->with('msg', 'All notifications were marked as read.');
     }
 }

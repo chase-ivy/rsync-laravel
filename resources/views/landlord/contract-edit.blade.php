@@ -26,7 +26,7 @@
 <div class="wrap">
     <div class="top-bar">
         <h1>Edit Contract {{ $code }}</h1>
-        <p class="c-intro">Changes apply to this contract only. The tenant sees the new terms and the date of the change on their contract.</p>
+        <p class="c-intro">Changes apply to this contract only. The tenant sees the new terms and the date of the change on their contract. If anything changes, the tenant gets an email and a notice and has to accept the contract again.</p>
     </div>
 
     @if ($errors->any())<div class="toast err">Please check the fields marked below.</div>@endif

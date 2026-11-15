@@ -16,6 +16,11 @@ class Room extends Model
 
     public $timestamps = false; // only created_at exists; the database fills it
 
+    /** New rooms are priced per person unless the landlord picks "whole room". */
+    protected $attributes = [
+        'price_type' => 'per_person',
+    ];
+
     protected $fillable = [
         'owner_id',
         'room_name',
@@ -27,7 +32,16 @@ class Room extends Model
         'longitude',
         'address',
         'amenities',
+        'price_type',
     ];
+
+    /** How the price is meant: key saved in the database => label in the Add / Edit Room window. */
+    public const PRICE_TYPES = [
+        'per_person' => 'Per person (each tenant pays this)',
+        'whole_room' => 'For the whole room (split between tenants)',
+    ];
+
+    public const DEFAULT_PRICE_TYPE = 'per_person';
 
     /**
      * Amenities a landlord can tick in the Add / Edit Room window.
@@ -96,6 +110,47 @@ class Room extends Model
         $chosen = (array) ($this->amenities ?? []);
 
         return array_filter(self::AMENITIES, fn ($key) => in_array($key, $chosen, true), ARRAY_FILTER_USE_KEY);
+    }
+
+    /** True when the price is for the whole room (split between tenants). */
+    public function isWholeRoomPrice(): bool
+    {
+        return $this->price_type === 'whole_room';
+    }
+
+    /**
+     * The monthly rent of ONE tenant's contract.
+     * - per_person: the room price.
+     * - whole_room: the price divided by the room's capacity (max_occupants), rounded to centavos.
+     *   We split by capacity, not by how many live there now, so a tenant's rent doesn't change
+     *   every time a roommate moves in or out (e.g. ₱3,500 for 2 → ₱1,750.00 each).
+     */
+    public function perPersonRent(): float
+    {
+        $price = (float) ($this->price ?? 0);
+        if (! $this->isWholeRoomPrice()) {
+            return $price;
+        }
+
+        return round($price / max(1, (int) ($this->max_occupants ?? 1)), 2);
+    }
+
+    /** Short price text, e.g. "₱3,500 / person" or "₱3,500 / room". */
+    public function priceLabel(): string
+    {
+        return '₱' . number_format((int) $this->price) . ($this->isWholeRoomPrice() ? ' / room' : ' / person');
+    }
+
+    /** Extra line for whole-room prices, e.g. "about ₱1,750 per person when full (2)"; null for per-person prices. */
+    public function splitNote(): ?string
+    {
+        if (! $this->isWholeRoomPrice()) {
+            return null;
+        }
+        $each = $this->perPersonRent();
+        $text = fmod($each, 1.0) === 0.0 ? number_format($each) : number_format($each, 2);
+
+        return 'about ₱' . $text . ' per person when full (' . max(1, (int) ($this->max_occupants ?? 1)) . ')';
     }
 
     /** True when the landlord has dropped a pin for this room. */

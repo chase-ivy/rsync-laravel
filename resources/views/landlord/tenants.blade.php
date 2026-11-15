@@ -80,6 +80,11 @@
                 </td>
                 <td>
                     <a href="{{ route('contracts.show', $t->tenant_id) }}" target="_blank" rel="noopener">Contract</a>
+                    @if ($t->isAccepted())
+                        <span class="badge badge-av" title="Accepted on {{ $t->acceptedAtText() }}">Accepted</span>
+                    @else
+                        <span class="badge badge-wait" title="Waiting for the tenant to accept">Waiting</span>
+                    @endif
                     <div class="t-sub"><a href="{{ route('landlord.contracts.edit', $t->tenant_id) }}">Edit contract</a></div>
                 </td>
             </tr>

@@ -26,6 +26,28 @@
 
     @if ($msg)<div class="toast {{ $isErr ? 'err' : '' }}">{{ $msg }}</div>@endif
 
+    <!-- NEW: NOTIFICATIONS (new or changed contracts) -->
+    @if ($notifications->isNotEmpty())
+    <div class="notice-box">
+        <div class="notice-head">
+            <strong>🔔 Notifications</strong>
+            <form method="POST" action="{{ route('tenant.notifications.read') }}">
+                @csrf
+                <button type="submit" class="btn btn-ghost btn-sm">Mark all as read</button>
+            </form>
+        </div>
+        <ul class="notice-list">
+            @foreach ($notifications as $n)
+                <li>
+                    <a href="{{ route('contracts.show', (int) ($n->data['tenancy_id'] ?? 0)) }}" class="link">{{ $n->data['title'] ?? 'Contract notice' }}</a>
+                    <div class="notice-text">{{ $n->data['message'] ?? '' }}</div>
+                    <div class="notice-date">{{ $n->created_at?->format('M d, Y \a\t h:i A') }}</div>
+                </li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
     <!-- ACTIVE BOOKINGS SECTION -->
     <div class="section-title">📍 Your Applied Rooms</div>
     @if ($bookings->isEmpty())
@@ -46,11 +68,18 @@
                 @endphp
             <tr>
                 <td><strong>{{ $b->room->room_name }}</strong></td>
-                <td>₱{{ number_format($b->room->price) }}</td>
+                <td>₱{{ number_format((float) ($b->monthly_rent ?? $b->room->price), 2) }}<br><span style="font-size:11px;color:var(--ink3);">per month (your contract)</span></td>
                 <td>{{ $start->format('M d, Y') }} - {{ $end->format('M d, Y') }}<br><span style="font-size:11px;color:var(--ink3);">{{ $days }} days</span></td>
                 <td>{{ (int) $b->room->current_occupants }}/{{ (int) $b->room->max_occupants }} occupants</td>
                 <td><span class="badge badge-av">Active</span></td>
-                <td><a href="{{ route('contracts.show', $b->tenant_id) }}" class="link" target="_blank" rel="noopener">View contract</a></td>
+                <td>
+                    <a href="{{ route('contracts.show', $b->tenant_id) }}" class="link" target="_blank" rel="noopener">View contract</a>
+                    @if ($b->isAccepted())
+                        <div class="accept-ok">✓ Accepted</div>
+                    @else
+                        <div class="accept-todo">Please review and accept your contract</div>
+                    @endif
+                </td>
             </tr>
             @endforeach
             </tbody>

@@ -71,6 +71,8 @@ Route::middleware('auth')->group(function () {
 
 // Printable rental agreement: the tenant, the room's landlord and admins (checked in the controller).
 Route::get('/contracts/{tenancy}', [ContractController::class, 'show'])->middleware('auth')->whereNumber('tenancy')->name('contracts.show');
+// The tenant of the contract accepts it ("I agree"); checked again in the controller.
+Route::post('/contracts/{tenancy}/accept', [ContractController::class, 'accept'])->middleware(['role:tenant', 'verified', 'throttle:10,1'])->whereNumber('tenancy')->name('contracts.accept');
 
 // Forgot password (forgot_password.php + the missing verify_otp step + new password)
 Route::get('/forgot-password', [ForgotPasswordController::class, 'showEmailForm'])->name('password.request');
@@ -88,6 +90,7 @@ Route::middleware('role:tenant')->group(function () {
     Route::middleware('verified')->group(function () {
         Route::post('/tenant/maintenance', [TenantRequestController::class, 'storeMaintenance'])->name('tenant.maintenance.store');
         Route::post('/tenant/payments', [TenantRequestController::class, 'storePayment'])->name('tenant.payments.store');
+        Route::post('/tenant/notifications/read', [TenantDashboardController::class, 'markNotificationsRead'])->name('tenant.notifications.read');
     });
 });
 

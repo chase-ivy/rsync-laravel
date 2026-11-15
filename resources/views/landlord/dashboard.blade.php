@@ -75,7 +75,10 @@ data-url-reject="{{ route('landlord.applications.reject') }}"
                     <div class="room-addr missing"><i class="bx bx-error-circle"></i> No address yet — click Edit to add it</div>
                 @endif
             </td>
-            <td>₱{{ number_format($row->price) }}</td>
+            <td>
+                {{ $row->priceLabel() }}
+                @if ($row->splitNote())<div class="price-note">{{ $row->splitNote() }}</div>@endif
+            </td>
             <td>
                 <div class="bar-wrap">
                     <span>{{ $cur }}/{{ $max }}</span>
@@ -92,7 +95,7 @@ data-url-reject="{{ route('landlord.applications.reject') }}"
                 <button class="btn btn-green btn-sm" onclick="openAssign({{ $row->room_id }})">Assign</button>
                 {{-- Room details travel as data-* attributes (safe for quotes and line breaks in the text). --}}
                 <button class="btn btn-amber btn-sm" onclick="openEdit(this)"
-                        data-id="{{ $row->room_id }}" data-name="{{ $row->room_name }}" data-price="{{ $row->price }}"
+                        data-id="{{ $row->room_id }}" data-name="{{ $row->room_name }}" data-price="{{ $row->price }}" data-price-type="{{ $row->price_type ?: 'per_person' }}"
                         data-desc="{{ $row->description }}" data-max="{{ $max }}"
                         data-lat="{{ $row->latitude }}" data-lng="{{ $row->longitude }}"
                         data-address="{{ $row->address }}" data-amenities="{{ json_encode(array_values((array) ($row->amenities ?? []))) }}">Edit</button>
@@ -121,6 +124,7 @@ data-url-reject="{{ route('landlord.applications.reject') }}"
             <div class="field"><label>Price / month</label><input type="number" name="price" placeholder="3500" min="0" required></div>
             <div class="field"><label>Max Occupants</label><input type="number" name="max_occupants" value="1" min="1" required></div>
         </div>
+        @include('partials.price-type-choice', ['prefix' => 'add'])
         <div class="field"><label>Images — at least 1, up to 8 · first = cover</label><div class="img-grid" id="add_grid"></div></div>
         @include('partials.amenity-checkboxes', ['prefix' => 'add'])
         @include('partials.location-picker')
@@ -153,6 +157,7 @@ data-url-reject="{{ route('landlord.applications.reject') }}"
             <div class="field"><label>Price / month</label><input type="number" name="price" id="edit_price" min="0" required></div>
             <div class="field"><label>Max Occupants</label><input type="number" name="max_occupants" id="edit_max" min="1" required></div>
         </div>
+        @include('partials.price-type-choice', ['prefix' => 'edit'])
 
         <!-- Existing images with delete buttons -->
         <div class="existing-imgs">

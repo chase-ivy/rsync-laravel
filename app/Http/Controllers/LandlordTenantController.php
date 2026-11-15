@@ -7,6 +7,8 @@ use App\Models\Room;
 use App\Models\RoomApplication;
 use App\Models\Tenancy;
 use App\Models\User;
+use App\Notifications\ContractNotice;
+use App\Support\ContractNotifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -57,7 +59,8 @@ class LandlordTenantController extends Controller
 
         $owner = $request->user();
 
-        return DB::transaction(function () use ($room, $tenant, $start, $end, $owner) {
+        // The transaction answers with an error, or with the new contract.
+        $result = DB::transaction(function () use ($room, $tenant, $start, $end, $owner) {
             $room = Room::whereKey($room->room_id)->lockForUpdate()->first();   // two clicks at once can't overfill the room
             $current = $room->tenancies()->where('status', 'Active')->count();
 
@@ -83,19 +86,30 @@ class LandlordTenantController extends Controller
 
             // The contract keeps its own copy of today's rent and the landlord's terms,
             // so changing the room price or the template later doesn't change this contract.
-            Tenancy::create([
+            // Rent: the room price for "per person" rooms; for "whole room" prices, the price split
+            // by the room's capacity (see Room::perPersonRent()), so it stays the same when roommates come or go.
+            $tenancy = Tenancy::create([
                 'user_id' => $tenant->user_id,
                 'room_id' => $room->room_id,
                 'start_date' => $start,
                 'end_date' => $end,
                 'status' => 'Active',
-                'monthly_rent' => (float) $room->price,
+                'monthly_rent' => $room->perPersonRent(),
             ] + ContractTemplate::termsFor($owner));
 
             $room->update(['status' => $current + 1 >= $room->max_occupants ? 'Occupied' : 'Available']);
 
-            return response()->json(['status' => 'success']);
+            return $tenancy;
         });
+
+        if ($result instanceof JsonResponse) {
+            return $result;
+        }
+
+        // Tell the tenant (dashboard notice + email) after the contract is saved; a failure never undoes it.
+        ContractNotifier::send($result, ContractNotice::NEW);
+
+        return response()->json(['status' => 'success']);
     }
 
     /** POST /landlord/tenants/remove — the tenant "Left": end date becomes today if it was later. */
@@ -152,20 +166,41 @@ class LandlordTenantController extends Controller
             return response()->json([]);
         }
 
+        $apps = RoomApplication::with('user:user_id,name,email')
+            ->where('room_id', $room->room_id)
+            ->orderByDesc('applied_at')
+            ->orderByDesc('application_id')
+            ->get();
+
+        // For "Assign to room" on Verified applications: is there a free slot, and who already rents a room?
+        $roomFull = $room->activeTenancies()->count() >= max(1, (int) $room->max_occupants);
+        $housed = Tenancy::where('status', 'Active')
+            ->whereIn('user_id', $apps->pluck('user_id')->unique())
+            ->pluck('room_id', 'user_id');   // user_id => room they rent now
+
         return response()->json(
-            RoomApplication::with('user:user_id,name,email')
-                ->where('room_id', $room->room_id)
-                ->orderByDesc('applied_at')
-                ->orderByDesc('application_id')
-                ->get()
-                ->map(fn (RoomApplication $a) => [
+            $apps->map(function (RoomApplication $a) use ($room, $roomFull, $housed) {
+                $reason = null;
+                if ($a->status === 'Verified') {
+                    if ($housed->has($a->user_id)) {
+                        $reason = (int) $housed[$a->user_id] === (int) $room->room_id ? 'Already lives here' : 'Already has a room';
+                    } elseif ($roomFull) {
+                        $reason = 'Room is full';
+                    }
+                }
+
+                return [
                     'application_id' => $a->application_id,
                     'user_id' => $a->user_id,
                     'status' => $a->status,
                     'applied_at' => $a->applied_at?->format('Y-m-d H:i:s'),
                     'name' => $a->user->name,
                     'email' => $a->user->email,
-                ])
+                    // New: only Verified applicants can be assigned from here; reason says why not.
+                    'can_assign' => $a->status === 'Verified' && $reason === null,
+                    'reason' => $reason,
+                ];
+            })
         );
     }
 

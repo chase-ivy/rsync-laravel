@@ -81,6 +81,7 @@ class DemoAccountsSeeder extends Seeder
                 // Only used when the room is created; an existing demo room is left as it is.
                 'address' => '12 Lower Magsaysay Ave, Brgy. Lourdes',
                 'amenities' => ['wifi', 'shared_cr', 'water', 'study_table', 'cabinet'],
+                'price_type' => 'per_person',   // each tenant pays ₱3,500
             ]
         );
 
@@ -104,8 +105,9 @@ class DemoAccountsSeeder extends Seeder
             ['start_date' => now()->toDateString(), 'end_date' => now()->addMonth()->toDateString()]
         );
         // A new demo contract gets its copy of the rent and terms, like a real assignment.
+        // It is left NOT accepted, so tenant2 can try "Accept contract".
         if ($tenancy->wasRecentlyCreated) {
-            $tenancy->update(['monthly_rent' => (float) $room->price] + ContractTemplate::termsFor($landlord));
+            $tenancy->update(['monthly_rent' => $room->perPersonRent()] + ContractTemplate::termsFor($landlord));
         }
 
         // tenant has applied and is waiting for the landlord.

@@ -78,3 +78,5 @@ footer { text-align:center; padding:24px; color:var(--muted); font-size:12px; bo
     nav{padding:0 20px;} .wrap{width:96%;}
     .layout{grid-template-columns:1fr;}
 }
+/* Price type hint under the price (per person / whole room split) */
+.price-hint { font-size:13px; color:var(--muted); margin-top:4px; line-height:1.45; }

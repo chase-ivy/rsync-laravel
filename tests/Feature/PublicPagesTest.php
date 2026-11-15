@@ -166,7 +166,8 @@ class PublicPagesTest extends TestCase
 
         $this->get('/rooms/' . $room->room_id)->assertOk()
             ->assertSee('<title>Room 201 · RSYNC </title>', false)
-            ->assertSee('₱4,500<span> / month</span>', false)
+            ->assertSee('₱4,500<span> / person</span>', false)   // price type added (per person by default)
+            ->assertSee('Each tenant pays this amount.')
             ->assertSee('Occupants: <strong>0 / 2</strong>', false)
             ->assertSee('2 persons')
             ->assertSee('2 open')

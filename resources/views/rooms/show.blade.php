@@ -83,7 +83,13 @@ data-dashboard-url="{{ route('tenant.dashboard') }}"
                 @if ($room->address)
                     <div class="room-address"><i class="bx bx-map"></i> {{ $room->address }}</div>
                 @endif
-                <div class="room-price">₱{{ number_format($room->price) }}<span> / month</span></div>
+                <div class="room-price">₱{{ number_format($room->price) }}<span> / {{ $room->isWholeRoomPrice() ? 'room' : 'person' }}</span></div>
+                {{-- Whole-room prices are split by capacity, so each tenant's rent stays the same when roommates come or go. --}}
+                @if ($room->isWholeRoomPrice())
+                    <p class="price-hint">Monthly rent for the whole room, split between tenants: {{ $room->splitNote() }}. Each tenant's contract rent is the price divided by the max occupants, so it doesn't change when roommates move in or out.</p>
+                @else
+                    <p class="price-hint">Monthly rent. Each tenant pays this amount.</p>
+                @endif
 
                 <div class="divider"></div>
 
