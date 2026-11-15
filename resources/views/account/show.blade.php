@@ -194,11 +194,14 @@
     @endif
 
     @if ($user->isOwner())
-    {{-- ── Business permit (landlords and sublessors) ── --}}
-    @php $permit = $user->permitStatus(); @endphp
+    {{-- ── Verification documents (landlords and sublessors). The business permit is the first one. ── --}}
+    @php
+        $permit = $user->permitStatus();
+        $missing = $user->missingRequiredDocuments();
+    @endphp
     <section class="card">
         <div class="card-head">
-            <h2><i class="bx bx-file"></i> Business permit</h2>
+            <h2><i class="bx bx-file"></i> Verification documents</h2>
             @switch ($permit)
                 @case('approved') <span class="pill ok"><i class="bx bx-check-circle"></i> Approved</span> @break
                 @case('pending')  <span class="pill warn"><i class="bx bx-time-five"></i> Waiting for review</span> @break
@@ -207,24 +210,52 @@
             @endswitch
         </div>
         @if ($permit === 'none')
-            <p class="text">Upload a clear photo or PDF of your business permit. The RSYNC team will check it to confirm that you can rent out rooms.</p>
+            <p class="text">Upload clear photos or PDFs of the permits of your boarding house. The RSYNC team checks them to confirm that you can legally rent out rooms. Start with your business permit.</p>
         @elseif ($permit === 'pending')
-            <p class="text">Uploaded on {{ $user->business_permit_uploaded_at?->format('M j, Y') }}. The RSYNC team will review it soon.</p>
+            <p class="text">The RSYNC team will review your documents soon.</p>
         @elseif ($permit === 'approved')
-            <p class="text">Your business permit was checked and approved.</p>
+            <p class="text">Your documents were checked and approved.</p>
         @else
-            <p class="text">Your permit could not be accepted. Please upload a clearer or updated copy.</p>
+            <p class="text">Your documents could not be accepted. Please upload clearer or updated copies.</p>
         @endif
-        @if ($user->business_permit)
-            <p class="text"><a href="{{ route('account.permit.show', $user->user_id) }}" target="_blank" rel="noopener" class="file-link"><i class="bx bx-show"></i> View uploaded permit</a></p>
+        @if ($missing)
+            <p class="text muted-note"><i class="bx bx-info-circle"></i> Still needed: {{ implode(', ', $missing) }}.</p>
         @endif
-        <form method="POST" action="{{ route('account.permit') }}" enctype="multipart/form-data" class="upload-row">
-            @csrf
-            <input type="file" name="permit" accept="image/jpeg,image/png,image/webp,application/pdf" required>
-            <button type="submit" class="btn btn-dark">{{ $user->business_permit ? 'Upload new copy' : 'Upload permit' }}</button>
-        </form>
-        @if ($pm->has('permit'))<p class="f-err">{{ $pm->first('permit') }}</p>@endif
-        <p class="hint">JPG, PNG, WEBP or PDF, up to 5 MB. Only you and the RSYNC admins can see this file.@if ($user->business_permit) Uploading a new copy sends it for review again.@endif</p>
+
+        <div class="doc-list">
+        @foreach (\App\Models\User::OWNER_DOCUMENTS as $key => $doc)
+            @php
+                $file = $user->{$key};
+                $bag = $key === 'business_permit' && $pm->any() ? $pm : $errors->getBag('doc_' . $key);
+            @endphp
+            <div class="doc-item">
+                <div class="doc-head">
+                    <div>
+                        <div class="doc-name">{{ $doc['label'] }} <span class="doc-tag {{ $doc['required'] ? 'req' : '' }}">{{ $doc['required'] ? 'Required' : 'Optional' }}</span></div>
+                        <div class="hint">Issued by: {{ $doc['issuer'] }}</div>
+                    </div>
+                    @if ($file)
+                        <span class="pill ok"><i class="bx bx-check-circle"></i> Uploaded</span>
+                    @else
+                        <span class="pill {{ $doc['required'] ? 'warn' : 'muted' }}"><i class="bx bx-error-circle"></i> Not uploaded</span>
+                    @endif
+                </div>
+                @if ($file)
+                    <p class="text"><a href="{{ route('account.documents.show', [$user->user_id, $key]) }}" target="_blank" rel="noopener" class="file-link"><i class="bx bx-show"></i> View uploaded file</a>
+                        @if ($user->{$key . '_uploaded_at'})<span class="muted-inline">· uploaded {{ $user->{$key . '_uploaded_at'}->format('M j, Y') }}</span>@endif</p>
+                @endif
+                <form method="POST" action="{{ route('account.documents.upload', $key) }}" enctype="multipart/form-data" class="upload-row">
+                    @csrf
+                    <input type="file" name="document" accept="image/jpeg,image/png,image/webp,application/pdf" required aria-label="{{ $doc['label'] }}">
+                    <button type="submit" class="btn btn-dark">{{ $file ? 'Upload new copy' : 'Upload' }}</button>
+                </form>
+                @foreach (['document', 'permit'] as $field)
+                    @if ($bag->has($field))<p class="f-err">{{ $bag->first($field) }}</p>@endif
+                @endforeach
+            </div>
+        @endforeach
+        </div>
+        <p class="hint">JPG, PNG, WEBP or PDF, up to 5 MB each. Only you and the RSYNC admins can see these files. Uploading a new file sends your account for review again.</p>
     </section>
     @endif
     @else

@@ -74,7 +74,12 @@ class DemoAccountsSeeder extends Seeder
         // A room owned by the demo landlord (the imported rooms have no usable owner).
         $room = Room::firstOrCreate(
             ['room_name' => 'Demo Room A', 'owner_id' => $users['landlord@rsync.test']->user_id],
-            ['price' => 3500, 'description' => 'Demo room for testing. Near the university.', 'status' => 'Available', 'max_occupants' => 2]
+            [
+                'price' => 3500, 'description' => 'Demo room for testing. Near the university.', 'status' => 'Available', 'max_occupants' => 2,
+                // Only used when the room is created; an existing demo room is left as it is.
+                'address' => '12 Lower Magsaysay Ave, Brgy. Lourdes',
+                'amenities' => ['wifi', 'shared_cr', 'water', 'study_table', 'cabinet'],
+            ]
         );
 
         // tenant2 currently rents it (1 of 2 slots taken).

@@ -66,7 +66,14 @@ data-url-reject="{{ route('landlord.applications.reject') }}"
                 </div>
                 @else<span class="no-img">No images</span>@endif
             </td>
-            <td><strong>{{ $row->room_name }}</strong></td>
+            <td>
+                <strong>{{ $row->room_name }}</strong>
+                @if ($row->address)
+                    <div class="room-addr"><i class="bx bx-map"></i> {{ $row->address }}</div>
+                @else
+                    <div class="room-addr missing"><i class="bx bx-error-circle"></i> No address yet — click Edit to add it</div>
+                @endif
+            </td>
             <td>₱{{ number_format($row->price) }}</td>
             <td>
                 <div class="bar-wrap">
@@ -86,7 +93,8 @@ data-url-reject="{{ route('landlord.applications.reject') }}"
                 <button class="btn btn-amber btn-sm" onclick="openEdit(this)"
                         data-id="{{ $row->room_id }}" data-name="{{ $row->room_name }}" data-price="{{ $row->price }}"
                         data-desc="{{ $row->description }}" data-max="{{ $max }}"
-                        data-lat="{{ $row->latitude }}" data-lng="{{ $row->longitude }}">Edit</button>
+                        data-lat="{{ $row->latitude }}" data-lng="{{ $row->longitude }}"
+                        data-address="{{ $row->address }}" data-amenities="{{ json_encode(array_values((array) ($row->amenities ?? []))) }}">Edit</button>
                 <button class="btn btn-red btn-sm"   onclick="openRemove({{ $row->room_id }})">Remove Tenant</button>
                 <button class="btn btn-ghost btn-sm" onclick="openApplicants({{ $row->room_id }})">Applicants</button>
                 <button class="btn btn-ghost btn-sm" onclick="delRoom({{ $row->room_id }})">Delete</button>
@@ -107,11 +115,13 @@ data-url-reject="{{ route('landlord.applications.reject') }}"
         @csrf
         <input type="hidden" name="add_room" value="1">
         <div class="field"><label>Room Name</label><input type="text" name="room_name" placeholder="e.g. Room 201" required></div>
+        <div class="field"><label>Address</label><input type="text" name="address" placeholder="e.g. 12 Lower Magsaysay Ave, Brgy. Lourdes" minlength="5" maxlength="255" required></div>
         <div class="row2">
             <div class="field"><label>Price / month</label><input type="number" name="price" placeholder="3500" min="0" required></div>
             <div class="field"><label>Max Occupants</label><input type="number" name="max_occupants" value="1" min="1" required></div>
         </div>
         <div class="field"><label>Images — at least 1, up to 8 · first = cover</label><div class="img-grid" id="add_grid"></div></div>
+        @include('partials.amenity-checkboxes', ['prefix' => 'add'])
         @include('partials.location-picker')
         <div class="field"><label>Description</label><textarea name="description" placeholder="Describe the room…"></textarea></div>
         <div class="modal-foot">
@@ -133,6 +143,11 @@ data-url-reject="{{ route('landlord.applications.reject') }}"
         <input type="hidden" name="room_id" id="edit_id">
 
         <div class="field"><label>Room Name</label><input type="text" name="room_name" id="edit_name" required></div>
+        <div class="field">
+            <label>Address</label>
+            <input type="text" name="address" id="edit_address" placeholder="e.g. 12 Lower Magsaysay Ave, Brgy. Lourdes" minlength="5" maxlength="255">
+            <p class="field-note" id="edit_address_note" hidden>This room has no address yet. Please add the street and barangay so tenants can find it.</p>
+        </div>
         <div class="row2">
             <div class="field"><label>Price / month</label><input type="number" name="price" id="edit_price" min="0" required></div>
             <div class="field"><label>Max Occupants</label><input type="number" name="max_occupants" id="edit_max" min="1" required></div>
@@ -152,6 +167,7 @@ data-url-reject="{{ route('landlord.applications.reject') }}"
             <div class="img-grid" id="edit_grid"></div>
         </div>
 
+        @include('partials.amenity-checkboxes', ['prefix' => 'edit'])
         @include('partials.location-picker')
         <div class="field"><label>Description</label><textarea name="description" id="edit_desc"></textarea></div>
         <div class="modal-foot">

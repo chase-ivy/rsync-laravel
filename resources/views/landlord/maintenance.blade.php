@@ -21,33 +21,66 @@
 <div class="wrap">
     <div class="top-bar">
         <h1>Maintenance Requests</h1>
-        <p style="font-size:14px;color:var(--ink3);max-width:560px;">Click on the Maintenance link from the dashboard to see tenant-submitted requests and the overall status report below.</p>
+        <p style="font-size:14px;color:var(--ink3);max-width:560px;">Requests from tenants in your rooms. Move each one along (Pending → In Progress → Completed) and leave a short reply the tenant sees on their dashboard.</p>
     </div>
+
+    @if ($msg)<div class="toast {{ $isErr ? 'err' : '' }}">{{ $msg }}</div>@endif
 
     <div class="card">
         <div class="card-header">
             <h2>Tenant Maintenance Requests</h2>
+            {{-- Filter by status (?status=...). "All" shows the 8 newest. --}}
+            <div class="filters">
+                <a href="{{ route('landlord.maintenance') }}" class="{{ $filter ? '' : 'on' }}">All</a>
+                @foreach (\App\Http\Controllers\MaintenanceController::FILTERS as $f)
+                    <a href="{{ route('landlord.maintenance', ['status' => $f]) }}" class="{{ $filter === $f ? 'on' : '' }}">{{ $f }}</a>
+                @endforeach
+            </div>
         </div>
         <div class="tbl-wrap">
             <table>
                 <thead>
                     <tr>
                         <th>Request ID</th>
+                        <th>Room / Tenant</th>
                         <th>Description</th>
                         <th>Status</th>
                         <th>Submitted</th>
+                        <th>Update &amp; reply</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if ($maintenanceRequests->isEmpty())
-                    <tr><td colspan="4" style="text-align:center;color:var(--ink3);padding:24px;">No maintenance requests found.</td></tr>
+                    <tr><td colspan="6" style="text-align:center;color:var(--ink3);padding:24px;">No maintenance requests found.</td></tr>
                     @else
                         @foreach ($maintenanceRequests as $req)
+                        @php $done = $req->status === 'Completed'; @endphp
                         <tr>
                             <td>{{ $req->request_id ?? 'N/A' }}</td>
+                            <td><strong>{{ $req->room?->room_name ?? '—' }}</strong><div class="sub">{{ $req->tenant?->name ?? '—' }}</div></td>
                             <td>{{ $req->description ?? 'No description' }}</td>
-                            <td><span class="badge {{ strtolower(str_replace(' ', '', $req->status ?? 'pending')) }}">{{ $req->status ?? 'Pending' }}</span></td>
+                            <td>
+                                <span class="badge {{ strtolower(str_replace(' ', '', $req->status ?? 'pending')) }}">{{ $req->status ?? 'Pending' }}</span>
+                                @if ($done && $req->resolved_at)<div class="sub">Done {{ $req->resolved_at->format('Y-m-d') }}</div>@endif
+                            </td>
                             <td>{{ $req->submitted_at?->format('Y-m-d H:i:s') ?? 'Unknown' }}</td>
+                            <td>
+                                <form method="POST" action="{{ route('landlord.maintenance.status') }}" class="review-form">
+                                    @csrf
+                                    <input type="hidden" name="request_id" value="{{ $req->request_id }}">
+                                    @if ($filter)<input type="hidden" name="filter" value="{{ $filter }}">@endif
+                                    @if ($done)
+                                        <input type="hidden" name="status" value="Completed">
+                                    @else
+                                        <select name="status" aria-label="New status">
+                                            <option value="In Progress" @selected($req->status !== 'In Progress')>In Progress</option>
+                                            <option value="Completed" @selected($req->status === 'In Progress')>Completed</option>
+                                        </select>
+                                    @endif
+                                    <textarea name="landlord_note" rows="2" maxlength="500" placeholder="Reply to the tenant (optional)">{{ $req->landlord_note }}</textarea>
+                                    <button type="submit" class="btn-save">{{ $done ? 'Save reply' : 'Save' }}</button>
+                                </form>
+                            </td>
                         </tr>
                         @endforeach
                     @endif

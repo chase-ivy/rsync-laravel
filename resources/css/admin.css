@@ -77,5 +77,14 @@ td.muted{padding:24px 16px;}
 .badge-in-progress{background:rgba(59,130,246,.12);color:#1d4ed8;}
 .report-totals{padding:16px 24px;font-size:14px;color:var(--ink2);border-bottom:1px solid var(--border);}
 .chart-box .chart-holder{flex:0 1 300px;}
+/* Verify Users: verification documents per landlord */
+.doc-links{list-style:none;display:flex;flex-direction:column;gap:3px;font-size:13px;}
+.doc-links a{color:#b45309;font-weight:600;}
+.doc-links a:hover{text-decoration:underline;}
+.doc-missing{font-size:12px;color:var(--red);margin-top:4px;}
+.doc-complete{font-size:12px;color:var(--green);margin-top:4px;}
+/* View contract link on the Tenants & Contracts page */
+.view-link{color:#b45309;font-weight:600;font-size:13px;}
+.view-link:hover{text-decoration:underline;}
 @media(max-width:860px){.form-grid,.form-grid-5{grid-template-columns:1fr;}}
 @media(max-width:640px){nav{padding:0 16px;}nav .nav-links a{padding:6px 8px;font-size:12px;}.wrap{width:96%;}}

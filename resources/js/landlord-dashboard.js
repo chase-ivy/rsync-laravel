@@ -50,6 +50,20 @@ window.openEdit = function (btn) {
     document.getElementById('edit_desc').value = r.desc;
     document.getElementById('edit_max').value = r.max;
 
+    // Address: rooms added before addresses existed get a reminder; once a room has one it stays required.
+    const addr = document.getElementById('edit_address');
+    addr.value = r.address || '';
+    addr.required = addr.value !== '';
+    document.getElementById('edit_address_note').hidden = addr.value !== '';
+
+    // Amenities travel as a JSON list in data-amenities, e.g. ["wifi","own_cr"].
+    let amenities = [];
+    try { amenities = JSON.parse(r.amenities || '[]'); } catch (e) { amenities = []; }
+    if (!Array.isArray(amenities)) amenities = [];
+    document.querySelectorAll('#editModal input[name="amenities[]"]').forEach(box => {
+        box.checked = amenities.includes(box.value);
+    });
+
     document.getElementById('existing_grid').innerHTML = '<span class="no-existing">Loading…</span>';
     document.getElementById('edit_grid').innerHTML = '';
     document.getElementById('editModal').classList.add('show');

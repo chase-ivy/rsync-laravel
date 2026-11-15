@@ -54,6 +54,7 @@ class RoomMapTest extends TestCase
     {
         return array_merge([
             'room_name' => 'Room 305', 'price' => '3900', 'max_occupants' => '2', 'description' => 'Near the school',
+            'address' => '12 Lower Magsaysay Ave, Brgy. Lourdes',
             'images' => [UploadedFile::fake()->image('cover.jpg')],
         ], $overrides);
     }

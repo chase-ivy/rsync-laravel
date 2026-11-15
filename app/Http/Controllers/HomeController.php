@@ -46,7 +46,7 @@ class HomeController extends Controller
         ]);
     }
 
-    /** Same query as the old ?search= block: name, description or price contains the text. */
+    /** Same query as the old ?search= block: name, description or price contains the text (new: or the address). */
     private function search(string $text): array
     {
         $like = '%' . mb_strtolower(trim($text)) . '%';
@@ -57,6 +57,7 @@ class HomeController extends Controller
                 // MariaDB ignored upper/lower case; LOWER() keeps that on PostgreSQL.
                 $q->whereRaw('LOWER(room_name) LIKE ?', [$like])
                     ->orWhereRaw('LOWER(description) LIKE ?', [$like])
+                    ->orWhereRaw('LOWER(address) LIKE ?', [$like])
                     ->orWhereRaw('CAST(price AS TEXT) LIKE ?', [$like]);
             })
             ->orderBy('status')

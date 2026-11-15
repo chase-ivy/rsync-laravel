@@ -55,7 +55,7 @@ class LandlordDashboardTest extends TestCase
 
     private function roomForm(array $overrides = []): array
     {
-        return array_merge(['room_name' => 'Room 305', 'price' => '3900', 'max_occupants' => '2', 'description' => 'Near the school'], $overrides);
+        return array_merge(['room_name' => 'Room 305', 'address' => '12 Lower Magsaysay Ave, Brgy. Lourdes', 'price' => '3900', 'max_occupants' => '2', 'description' => 'Near the school'], $overrides);
     }
 
     // ---------- Page ----------

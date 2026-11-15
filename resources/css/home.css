@@ -159,3 +159,6 @@ footer p{font-size:12px;color:rgba(255,255,255,.3);}
 .plan-btn.amber-btn:hover{background:#d08a14;}
 .plan-note{font-size:14px;color:var(--ink3);max-width:560px;margin-top:6px;}
 .plan-hero{display:flex;justify-content:space-between;flex-wrap:wrap;gap:22px;align-items:center;margin-bottom:32px;}
+/* Room address on the cards */
+.c-addr{font-size:12px;color:var(--ink3);margin-bottom:6px;display:flex;align-items:flex-start;gap:3px;line-height:1.4;}
+.c-addr i{font-size:14px;margin-top:1px;}

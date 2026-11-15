@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\ContractController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LandlordController;
 use App\Http\Controllers\LandlordTenantController;
@@ -53,6 +54,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/account', [AccountController::class, 'show'])->name('account');
     Route::post('/account/password', [AccountController::class, 'updatePassword'])->middleware('throttle:6,1')->name('account.password');
     Route::get('/account/permit/{id}', [AccountController::class, 'permit'])->whereNumber('id')->name('account.permit.show');   // owner or admin only
+    Route::get('/account/documents/{id}/{type}', [AccountController::class, 'document'])->whereNumber('id')->where('type', '[a-z_]+')->name('account.documents.show');   // owner or admin only
     Route::get('/account/valid-id/{id}', [AccountController::class, 'validId'])->whereNumber('id')->name('account.valid-id.show');   // tenant, admin, their landlord
 
     // Filling in your details needs a verified email first.
@@ -61,9 +63,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/account/photo', [AccountController::class, 'updatePhoto'])->middleware('throttle:10,1')->name('account.photo');
         Route::post('/account/photo/remove', [AccountController::class, 'removePhoto'])->name('account.photo.remove');
         Route::post('/account/permit', [AccountController::class, 'uploadPermit'])->middleware('throttle:10,1')->name('account.permit');
+        Route::post('/account/documents/{type}', [AccountController::class, 'uploadDocument'])->where('type', '[a-z_]+')->middleware('throttle:10,1')->name('account.documents.upload');
         Route::post('/account/valid-id', [AccountController::class, 'uploadValidId'])->middleware('throttle:10,1')->name('account.valid-id');
     });
 });
+
+// Printable rental agreement: the tenant, the room's landlord and admins (checked in the controller).
+Route::get('/contracts/{tenancy}', [ContractController::class, 'show'])->middleware('auth')->whereNumber('tenancy')->name('contracts.show');
 
 // Forgot password (forgot_password.php + the missing verify_otp step + new password)
 Route::get('/forgot-password', [ForgotPasswordController::class, 'showEmailForm'])->name('password.request');
@@ -92,6 +98,7 @@ Route::middleware('role:landlord,sublessor')->prefix('landlord')->name('landlord
 
     Route::middleware('verified')->group(function () {
         Route::post('/rooms', [LandlordController::class, 'store'])->name('rooms.store');
+        Route::post('/maintenance/status', [MaintenanceController::class, 'updateStatus'])->name('maintenance.status');
         Route::post('/rooms/update', [LandlordController::class, 'update'])->name('rooms.update');
         Route::post('/rooms/delete', [LandlordController::class, 'destroy'])->name('rooms.delete');
         Route::post('/rooms/images', [LandlordController::class, 'images'])->name('rooms.images');

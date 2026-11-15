@@ -100,3 +100,14 @@ footer p{font-size:12px;color:rgba(255,255,255,.3);}
 .badge-warn{background:rgba(251,191,36,.2);color:#b45309;}
 .t-contact{font-size:13px;line-height:1.5;}
 .t-contact a,.tbl-wrap td a{color:#b45309;font-weight:600;}
+
+/* Room address in the table and the amenities checklist in the Add / Edit windows */
+.room-addr{font-size:11px;color:var(--ink3);margin-top:3px;display:flex;align-items:center;gap:3px;max-width:260px;}
+.room-addr.missing{color:#b45309;}
+.field-note{font-size:12px;color:#b45309;margin-top:5px;}
+.amenity-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:5px;}
+.field label.amenity-check{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--ink2);text-transform:none;letter-spacing:0;margin:0;padding:6px 8px;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:#fafaf8;}
+.field label.amenity-check input{width:auto;margin:0;accent-color:var(--amber);}
+.field label.amenity-check i{color:var(--amber);font-size:15px;}
+.field label.amenity-check:has(input:checked){border-color:rgba(232,160,32,.5);background:rgba(232,160,32,.08);}
+@media(max-width:640px){.amenity-grid{grid-template-columns:1fr;}}

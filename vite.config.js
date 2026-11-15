@@ -25,6 +25,7 @@ export default defineConfig({
                 'resources/js/admin-dashboard.js',
                 'resources/js/admin-tenants.js',
                 'resources/css/account.css',   
+                'resources/css/contract.css',  // RSYNC printable rental agreement
                 
             ],
             refresh: true,

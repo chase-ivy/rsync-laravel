@@ -1,5 +1,5 @@
 // RSYNC rooms page (was the <script> at the bottom of rooms.php): filter the cards while typing.
-// Matches the room name, the status or the price; shows a message when nothing matches.
+// Matches the room name, the address, the status or the price; shows a message when nothing matches.
 const q = document.getElementById('q');
 const cards = document.querySelectorAll('.card');
 const grid = document.querySelector('.grid');
@@ -13,7 +13,7 @@ q.addEventListener('input', function () {
     const text = this.value.trim().toLowerCase();
     let shown = 0;
     cards.forEach(c => {
-        const hit = text === '' || [c.dataset.n, c.dataset.s, c.dataset.p].some(v => (v || '').includes(text));
+        const hit = text === '' || [c.dataset.n, c.dataset.a, c.dataset.s, c.dataset.p].some(v => (v || '').includes(text));
         c.style.display = hit ? '' : 'none';
         if (hit) shown++;
     });

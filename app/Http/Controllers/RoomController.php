@@ -18,7 +18,11 @@ class RoomController extends Controller
        
                 $rooms = Room::withListingInfo()
             ->withOpenSlots()   // full rooms are not listed
-            ->when($search !== '', fn ($q) => $q->whereRaw('LOWER(room_name) LIKE ?', ['%' . mb_strtolower($search) . '%'])->orderBy('room_id'))
+            // Name or (new) address contains the text, e.g. "magsaysay".
+            ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w
+                ->whereRaw('LOWER(room_name) LIKE ?', ['%' . mb_strtolower($search) . '%'])
+                ->orWhereRaw('LOWER(address) LIKE ?', ['%' . mb_strtolower($search) . '%']))
+                ->orderBy('room_id'))
             ->when($search === '', fn ($q) => $q->orderByDesc('created_at'))
             ->get();
 

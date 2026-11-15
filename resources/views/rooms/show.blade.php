@@ -10,6 +10,7 @@
 
 @section('fonts')
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/boxicons@latest/css/boxicons.min.css" rel="stylesheet">
 @endsection
 
 {{-- Values the page script needs (room_detail.php printed them into its <script> with PHP). --}}
@@ -79,6 +80,9 @@ data-dashboard-url="{{ route('tenant.dashboard') }}"
         <div>
             <div class="info-card">
                 <div class="room-title">{{ $room->room_name }}</div>
+                @if ($room->address)
+                    <div class="room-address"><i class="bx bx-map"></i> {{ $room->address }}</div>
+                @endif
                 <div class="room-price">₱{{ number_format($room->price) }}<span> / month</span></div>
 
                 <div class="divider"></div>
@@ -103,6 +107,18 @@ data-dashboard-url="{{ route('tenant.dashboard') }}"
                     <span class="label">Slots available</span>
                     <span class="val" style="color:{{ $full ? 'var(--red)' : 'var(--green)' }}">{{ max(0, $max - $current) }} open</span>
                 </div>
+
+                @php $amenities = $room->amenityList(); @endphp
+                @if ($amenities)
+                <div class="desc-block">
+                    <h4>Amenities</h4>
+                    <ul class="amenity-chips">
+                        @foreach ($amenities as [$label, $icon])
+                            <li><i class="bx {{ $icon }}"></i> {{ $label }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+                @endif
 
                 @if (!empty($room->description))
                 <div class="desc-block">

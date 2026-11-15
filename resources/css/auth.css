@@ -82,3 +82,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-
 /* Forgot password: 6-digit code box (new page, same look) */
 .otp-input{letter-spacing:.5em;font-size:20px !important;text-align:center;padding:11px 13px !important;}
 .pw-hint{font-size:11.5px;color:#8e8ea0;margin-top:5px;line-height:1.4;}
+
+/* ---------- Messages under each field (register, new password) ---------- */
+.f-msg{display:none;align-items:flex-start;gap:5px;font-size:12px;color:#dc2626;margin-top:6px;line-height:1.4;}
+.f-msg::before{content:"!";flex-shrink:0;width:15px;height:15px;border-radius:50%;background:#dc2626;color:#fff;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-top:1px;}
+.field.invalid .f-msg:not(:empty){display:flex;}
+.field.invalid input,.field.invalid select{border-color:#dc2626;background:#fff7f7;}
+.field.invalid input:focus,.field.invalid select:focus{border-color:#dc2626;box-shadow:0 0 0 3px rgba(220,38,38,.13);}
+.field.invalid .inp-wrap > i{color:#dc2626;}
+.field.valid input,.field.valid select{border-color:#16a34a;}
+
+/* Password checklist: grey until typed, green when met, red when missed */
+.pw-rules{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:3px 10px;}
+.pw-rules li{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--ink3);}
+.pw-rules li i{position:static;transform:none;font-size:14px;color:inherit;cursor:default;pointer-events:none;}
+.pw-rules li.met{color:#16a34a;}
+.pw-rules li.miss{color:#dc2626;}
+@media(max-width:420px){.pw-rules{grid-template-columns:1fr;}}

@@ -36,7 +36,7 @@
     @else
         <div class="tbl-wrap">
         <table>
-            <thead><tr><th>Room</th><th>Price</th><th>Duration</th><th>Occupancy</th><th>Status</th></tr></thead>
+            <thead><tr><th>Room</th><th>Price</th><th>Duration</th><th>Occupancy</th><th>Status</th><th>Contract</th></tr></thead>
             <tbody>
             @foreach ($bookings as $b)
                 @php
@@ -50,6 +50,7 @@
                 <td>{{ $start->format('M d, Y') }} - {{ $end->format('M d, Y') }}<br><span style="font-size:11px;color:var(--ink3);">{{ $days }} days</span></td>
                 <td>{{ (int) $b->room->current_occupants }}/{{ (int) $b->room->max_occupants }} occupants</td>
                 <td><span class="badge badge-av">Active</span></td>
+                <td><a href="{{ route('contracts.show', $b->tenant_id) }}" class="link" target="_blank" rel="noopener">View contract</a></td>
             </tr>
             @endforeach
             </tbody>
@@ -129,7 +130,12 @@
             @foreach ($maintenance as $m)
             <tr>
                 <td><strong>{{ $m->room?->room_name ?? '—' }}</strong></td>
-                <td>{{ $m->description }}</td>
+                <td>
+                    {{ $m->description }}
+                    @if ($m->landlord_note)
+                        <div class="landlord-note"><strong>Landlord's reply:</strong> {{ $m->landlord_note }}</div>
+                    @endif
+                </td>
                 <td>{{ $m->submitted_at?->format('M d, Y') ?? '—' }}</td>
                 <td><span class="badge {{ ['Pending' => 'badge-pend', 'In Progress' => 'badge-prog', 'Completed' => 'badge-av'][$m->status] ?? '' }}">{{ $m->status }}</span></td>
             </tr>

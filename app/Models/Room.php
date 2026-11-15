@@ -25,6 +25,30 @@ class Room extends Model
         'max_occupants',
         'latitude',
         'longitude',
+        'address',
+        'amenities',
+    ];
+
+    /**
+     * Amenities a landlord can tick in the Add / Edit Room window.
+     * key (saved in the database) => [label shown on the page, Boxicons icon].
+     * To add one, add a line here; nothing else needs to change.
+     */
+    public const AMENITIES = [
+        'wifi' => ['WiFi', 'bx-wifi'],
+        'own_cr' => ['Own CR / Bathroom', 'bx-bath'],
+        'shared_cr' => ['Shared CR', 'bx-group'],
+        'kitchen' => ['Kitchen access', 'bx-restaurant'],
+        'laundry' => ['Laundry area', 'bx-basket'],
+        'water' => ['Water included', 'bx-water'],
+        'electricity' => ['Electricity included', 'bx-bolt-circle'],
+        'aircon' => ['Air-conditioning', 'bx-wind'],
+        'study_table' => ['Study table', 'bx-book-open'],
+        'cabinet' => ['Cabinet / Closet', 'bx-cabinet'],
+        'parking' => ['Parking', 'bx-car'],
+        'cctv' => ['CCTV', 'bx-cctv'],
+        'curfew_free' => ['Curfew-free', 'bx-time-five'],
+        'pet_friendly' => ['Pet-friendly', 'bx-heart'],
     ];
 
     protected function casts(): array
@@ -35,6 +59,7 @@ class Room extends Model
             'max_occupants' => 'integer',
             'latitude' => 'float',
             'longitude' => 'float',
+            'amenities' => 'array',
             'created_at' => 'datetime',
         ];
     }
@@ -60,6 +85,17 @@ class Room extends Model
         return $query->whereRaw(
             "(SELECT COUNT(*) FROM tenants WHERE tenants.room_id = rooms.room_id AND tenants.status = 'Active') < COALESCE(rooms.max_occupants, 1)"
         );
+    }
+
+    /**
+     * The room's amenities as [key => [label, icon]], in the order of AMENITIES.
+     * Unknown keys (e.g. an amenity removed from the list later) are skipped.
+     */
+    public function amenityList(): array
+    {
+        $chosen = (array) ($this->amenities ?? []);
+
+        return array_filter(self::AMENITIES, fn ($key) => in_array($key, $chosen, true), ARRAY_FILTER_USE_KEY);
     }
 
     /** True when the landlord has dropped a pin for this room. */

@@ -27,7 +27,7 @@
 
     <div class="tbl-wrap">
     <table>
-        <thead><tr><th>Tenant</th><th>Room</th><th>Contract</th><th>Status</th><th>Payment</th><th>Contact</th><th>Valid ID</th></tr></thead>
+        <thead><tr><th>Tenant</th><th>Room</th><th>Contract</th><th>Status</th><th>Payment</th><th>Contact</th><th>Valid ID</th><th>Contract</th></tr></thead>
         <tbody>
         @forelse ($tenancies as $t)
             @php
@@ -75,9 +75,10 @@
                         <span class="t-sub">Not uploaded</span>
                     @endif
                 </td>
+                <td><a href="{{ route('contracts.show', $t->tenant_id) }}" target="_blank" rel="noopener">Contract</a></td>
             </tr>
         @empty
-            <tr><td colspan="7" class="t-empty">No current tenants yet. Assign tenants to your rooms from the Dashboard.</td></tr>
+            <tr><td colspan="8" class="t-empty">No current tenants yet. Assign tenants to your rooms from the Dashboard.</td></tr>
         @endforelse
         </tbody>
     </table>

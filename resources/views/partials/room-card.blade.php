@@ -8,7 +8,7 @@
     $pct = $max > 0 ? round($cur / $max * 100) : 0;
     $cover = $r->cover_image ? \App\Support\RoomPhotos::url($r->cover_image) : null;
 @endphp
-<div class="card" data-n="{{ mb_strtolower($r->room_name) }}" data-s="{{ strtolower((string) $r->status) }}" data-p="{{ $r->price }}">
+<div class="card" data-n="{{ mb_strtolower($r->room_name) }}" data-a="{{ mb_strtolower((string) $r->address) }}" data-s="{{ strtolower((string) $r->status) }}" data-p="{{ $r->price }}">
     <div class="c-img">
         @if ($cover)
             <img src="{{ $cover }}" alt="{{ $r->room_name }}" onerror="this.parentElement.innerHTML='<div class=\'no-img\'>No image</div>'">
@@ -17,6 +17,7 @@
     </div>
     <div class="c-body">
         <div class="c-name">{{ $r->room_name }}</div>
+        @if ($r->address)<div class="c-addr"><i class="bx bx-map"></i> {{ $r->address }}</div>@endif
         <div class="occ">Occupants: <strong>{{ $cur }}/{{ $max }}</strong>
             <div class="occ-bar"><div class="occ-fill {{ $cur >= $max ? 'full' : '' }}" style="width:{{ $pct }}%"></div></div>
         </div>

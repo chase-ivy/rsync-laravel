@@ -50,11 +50,55 @@ class User extends Authenticatable implements MustVerifyEmail
             'verified' => 'boolean',
             'verification_rejected_at' => 'datetime',
             'business_permit_uploaded_at' => 'datetime',
+            'fire_safety_certificate_uploaded_at' => 'datetime',
+            'sanitary_permit_uploaded_at' => 'datetime',
+            'barangay_clearance_uploaded_at' => 'datetime',
             'birthday' => 'date:Y-m-d',
             'valid_id_uploaded_at' => 'datetime',
             'email_verified_at' => 'datetime',
             'created_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Documents a landlord / sublessor uploads so the admin can check the boarding house is legal
+     * (see docs/VERIFICATION_REQUIREMENTS.md). The key is also the users column with the private
+     * file name; "{key}_uploaded_at" holds the upload time. business_permit is the original column.
+     */
+    public const OWNER_DOCUMENTS = [
+        'business_permit' => [
+            'label' => "Business permit (Mayor's Permit)",
+            'issuer' => 'City Hall, Business Permits and Licensing Office (BPLO)',
+            'required' => true,
+        ],
+        'fire_safety_certificate' => [
+            'label' => 'Fire Safety Inspection Certificate (FSIC)',
+            'issuer' => 'Bureau of Fire Protection (BFP)',
+            'required' => true,
+        ],
+        'sanitary_permit' => [
+            'label' => 'Sanitary Permit',
+            'issuer' => 'City Health Services Office',
+            'required' => true,
+        ],
+        'barangay_clearance' => [
+            'label' => 'Barangay Business Clearance',
+            'issuer' => 'Your barangay hall',
+            'required' => false,
+        ],
+    ];
+
+    /** Required documents this owner has not uploaded yet, as [key => label]. */
+    public function missingRequiredDocuments(): array
+    {
+        $missing = [];
+        foreach (self::OWNER_DOCUMENTS as $key => $doc) {
+            if ($doc['required'] && ! $this->{$key}) {
+                $missing[$key] = $doc['label'];
+            }
+        }
+
+        return $missing;
     }
 
     /** Who an emergency contact can be (Account page dropdown). */

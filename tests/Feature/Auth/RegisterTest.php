@@ -145,6 +145,22 @@ class RegisterTest extends TestCase
         $this->assertSame(0, DB::table('users')->count());
     }
 
+    public function test_the_wrong_field_is_marked_red_and_has_a_message_spot(): void
+    {
+        $this->get('/register')
+            ->assertSee('data-validate novalidate', false)
+            ->assertSee('data-msg-for="email"', false)
+            ->assertSee('data-msg-for="password"', false)
+            ->assertSee('data-pw-rules', false);
+
+        $this->post('/register', $this->form(['email' => 'kenneth.dwight11gmail.com']))
+            ->assertSee('<div class="field invalid">', false)
+            ->assertSee('Please enter a valid email address.');
+        $this->post('/register', $this->form(['password' => 'halofleur11$', 'password_confirmation' => 'halofleur11$']))
+            ->assertSee('<div class="field invalid">', false)
+            ->assertSee('uppercase and one lowercase');
+    }
+
     public function test_login_page_links_to_register(): void
     {
         $this->get('/login')->assertSee('href="' . route('register') . '"', false);

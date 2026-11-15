@@ -64,7 +64,8 @@ class LandlordController extends Controller
     /** POST /landlord/rooms — "Save Room" in the Add Room window. */
     public function store(Request $request): RedirectResponse
     {
-                if ($error = $this->validateRoom($request)) {
+        // A new room always needs a written address.
+        if ($error = $this->validateRoom($request, true)) {
             return $this->back('err:' . $error);
         }
         // New rule: a room needs at least one photo (the cover).
@@ -81,7 +82,10 @@ class LandlordController extends Controller
             'max_occupants' => max(1, (int) $request->input('max_occupants')),
             'latitude' => $this->coordinate($request, 'latitude'),
             'longitude' => $this->coordinate($request, 'longitude'),
-        ]);        $saved = $this->saveImages($room, $request->file('images', []), self::MAX_IMAGES);
+            'address' => $this->address($request),
+            'amenities' => $this->amenities($request),
+        ]);
+        $saved = $this->saveImages($room, $request->file('images', []), self::MAX_IMAGES);
         if ($saved === 0) {
             // Every upload failed: don't keep a room without photos.
             $room->delete();
@@ -101,7 +105,9 @@ class LandlordController extends Controller
         if (! $room) {
             return $this->back('err:Failed to update. You can only change your own rooms.');
         }
-        if ($error = $this->validateRoom($request)) {
+        // Rooms added before addresses existed may be saved without one (the window asks for it);
+        // a room that already has an address can't have it removed.
+        if ($error = $this->validateRoom($request, filled($room->address))) {
             return $this->back('err:' . $error);
         }
 
@@ -110,6 +116,8 @@ class LandlordController extends Controller
             'price' => (int) $request->input('price'),
             'description' => $request->input('description'),
             'max_occupants' => max(1, (int) $request->input('max_occupants')),
+            'address' => $this->address($request),
+            'amenities' => $this->amenities($request),   // unticked boxes are not sent, so a missing list means "none"
         ] + ($request->has('latitude') || $request->has('longitude') ? [   // the form always sends the pin; an empty one removes it
             'latitude' => $this->coordinate($request, 'latitude'),
             'longitude' => $this->coordinate($request, 'longitude'),
@@ -189,10 +197,13 @@ class LandlordController extends Controller
     }
 
     /** Server-side checks for the Add / Edit form. Returns the first problem, or null. */
-    private function validateRoom(Request $request): ?string
+    private function validateRoom(Request $request, bool $addressRequired): ?string
     {
         $v = Validator::make($request->all(), [
             'room_name' => ['required', 'string', 'max:100'],
+            'address' => [$addressRequired ? 'required' : 'nullable', 'string', 'min:5', 'max:255'],
+            'amenities' => ['nullable', 'array'],
+            'amenities.*' => ['string', 'in:' . implode(',', array_keys(Room::AMENITIES))],
             'price' => ['required', 'integer', 'min:0'],
             'max_occupants' => ['required', 'integer', 'min:1', 'max:100'],
             'description' => ['nullable', 'string', 'max:5000'],
@@ -203,6 +214,11 @@ class LandlordController extends Controller
             // Security fix: the old page saved any file type; now only real pictures up to 5 MB.
             'images.*' => ['image', 'mimes:jpg,jpeg,png,gif,webp', 'max:5120'],
         ], [
+            'address.required' => 'Please enter the address of the room (street and barangay), e.g. 12 Lower Magsaysay Ave, Brgy. Lourdes.',
+            'address.min' => 'Please enter the full address of the room (street and barangay).',
+            'address.max' => 'The address must be 255 characters or fewer.',
+            'amenities.array' => 'Please choose amenities from the list.',
+            'amenities.*.in' => 'Please choose amenities from the list.',
             'images.*.image' => 'Only picture files can be uploaded.',
             'images.*.mimes' => 'Pictures must be JPG, PNG, GIF or WEBP.',
             'images.*.max' => 'Each picture must be 5 MB or smaller.',
@@ -241,6 +257,22 @@ class LandlordController extends Controller
 
         return $saved;
     }
+    /** The address with extra spaces removed, or null when empty. */
+    private function address(Request $request): ?string
+    {
+        $text = preg_replace('/\s+/', ' ', trim((string) $request->input('address', '')));
+
+        return $text === '' ? null : $text;
+    }
+
+    /** Ticked amenities in the fixed order of Room::AMENITIES (no duplicates). */
+    private function amenities(Request $request): array
+    {
+        $chosen = array_map('strval', (array) $request->input('amenities', []));
+
+        return array_values(array_filter(array_keys(Room::AMENITIES), fn ($key) => in_array($key, $chosen, true)));
+    }
+
     /** A map coordinate from the form, rounded to 7 decimals (about 1 cm), or null when empty. */
     private function coordinate(Request $request, string $key): ?float
     {

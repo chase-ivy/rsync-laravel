@@ -30,6 +30,23 @@ tbody tr:hover{background:#fafaf8;}
 .badge-pending{background:rgba(245,158,11,.12);color:#92400e;}
 .badge-completed{background:rgba(16,185,129,.14);color:#047857;}
 .badge-inprogress{background:rgba(59,130,246,.12);color:#1d4ed8;}
+/* Landlord review: flash message, filter, and the update form in each row */
+.toast{padding:10px 16px;border-radius:9px;margin-bottom:16px;font-size:13px;font-weight:500;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;}
+.toast.err{background:#fef2f2;color:var(--red);border-color:#fecaca;}
+.filters{display:flex;gap:6px;flex-wrap:wrap;}
+.filters a{font-size:12px;font-weight:600;color:var(--ink2);border:1px solid var(--border);padding:6px 12px;border-radius:999px;}
+.filters a:hover{border-color:var(--amber);}
+.filters a.on{background:var(--ink);color:#fff;border-color:var(--ink);}
+.sub{font-size:12px;color:var(--ink3);margin-top:2px;}
+.badge.pending{background:rgba(245,158,11,.12);color:#92400e;}
+.badge.inprogress{background:rgba(59,130,246,.12);color:#1d4ed8;}
+.badge.completed{background:rgba(16,185,129,.14);color:#047857;}
+.review-form{display:flex;flex-direction:column;gap:6px;min-width:220px;}
+.review-form select,.review-form textarea{font-family:inherit;font-size:13px;padding:7px 9px;border:1px solid rgba(0,0,0,.15);border-radius:8px;background:#fff;color:var(--ink);}
+.review-form textarea{resize:vertical;min-height:44px;}
+.review-form select:focus,.review-form textarea:focus{outline:none;border-color:var(--amber);}
+.btn-save{align-self:flex-start;font-family:inherit;font-size:12px;font-weight:600;padding:6px 14px;border:0;border-radius:8px;background:var(--ink);color:#fff;cursor:pointer;}
+.btn-save:hover{background:#1e1e2e;}
 footer{background:var(--ink);border-top:1px solid rgba(255,255,255,.06);padding:22px 32px;display:flex;justify-content:space-between;align-items:center;margin-top:auto;}
 .foot-logo{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#fff;letter-spacing:2px;}
 .foot-logo em{color:var(--amber);font-style:normal;}

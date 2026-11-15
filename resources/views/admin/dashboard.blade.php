@@ -55,7 +55,7 @@
         <div class="tbl-wrap">
             <table>
                 <thead>
-                    <tr><th>Name</th><th>Email</th><th>Role</th><th>Business permit</th><th>Status</th><th>Action</th></tr>
+                    <tr><th>Name</th><th>Email</th><th>Role</th><th>Documents</th><th>Status</th><th>Action</th></tr>
                 </thead>
                 <tbody>
                 @forelse ($pendingUsers as $u)
@@ -64,10 +64,21 @@
                         <td>{{ $u->email }}</td>
                         <td>{{ ucfirst($u->role) }}</td>
                         <td>
-                            @if ($u->business_permit)
-                                <a href="{{ route('account.permit.show', $u->user_id) }}" target="_blank" rel="noopener">View permit</a>
-                            @elseif ($u->isOwner())
-                                <span class="muted">Not uploaded</span>
+                            @if ($u->isOwner())
+                                {{-- One link per uploaded verification document, then the required ones still missing. --}}
+                                <ul class="doc-links">
+                                    @foreach (\App\Models\User::OWNER_DOCUMENTS as $key => $doc)
+                                        @if ($u->{$key})
+                                            <li><a href="{{ $key === 'business_permit' ? route('account.permit.show', $u->user_id) : route('account.documents.show', [$u->user_id, $key]) }}" target="_blank" rel="noopener">View {{ $doc['label'] }}</a></li>
+                                        @endif
+                                    @endforeach
+                                </ul>
+                                @php $missing = $u->missingRequiredDocuments(); @endphp
+                                @if ($missing)
+                                    <div class="doc-missing">Missing: {{ implode(', ', $missing) }}</div>
+                                @else
+                                    <div class="doc-complete">All required documents uploaded</div>
+                                @endif
                             @else
                                 <span class="muted">—</span>
                             @endif

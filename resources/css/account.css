@@ -66,7 +66,18 @@ nav a:hover{color:#fff;border-color:rgba(255,255,255,.5);}
 .btn-dark{background:var(--ink);color:#fff;}.btn-dark:hover{background:#1e1e2e;}
 .btn-amber{background:var(--amber);color:#fff;}.btn-amber:hover{background:#d08e14;}
 
+/* Verification documents (landlords and sublessors) */
+.pill.muted{background:rgba(0,0,0,.05);color:var(--ink3);}
+.muted-note{display:flex;align-items:center;gap:5px;color:#b45309;}
+.doc-list{display:flex;flex-direction:column;gap:12px;margin:12px 0 6px;}
+.doc-item{border:1px solid var(--border);border-radius:11px;padding:14px 16px;background:#fcfcfa;}
+.doc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px;}
+.doc-name{font-size:14px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.doc-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:2px 7px;border-radius:999px;background:rgba(0,0,0,.05);color:var(--ink3);}
+.doc-tag.req{background:rgba(232,160,32,.15);color:#92400e;}
+
 @media(max-width:640px){
+    .doc-head{flex-direction:column;}
     nav{padding:0 16px;}
     .row2{grid-template-columns:1fr;gap:0;}
     .card{padding:18px 16px;}

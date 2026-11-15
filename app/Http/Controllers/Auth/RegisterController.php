@@ -43,8 +43,9 @@ class RegisterController extends Controller
         $plan = $this->validPlan($request->input('plan'));
         $lockedPlan = $request->boolean('plan_locked') ? $plan : '';
 
-        $page = fn (string $error) => view('auth.register', [
+        $page = fn (string $error, string $field = '') => view('auth.register', [
             'error' => $error,
+            'errorField' => $field,   // that field gets a red border
             'lockedPlan' => $lockedPlan,
             'selectedPlan' => $plan,
             'selectedRole' => $role !== '' ? $role : ($lockedPlan !== '' ? 'landlord' : ''),
@@ -65,14 +66,14 @@ class RegisterController extends Controller
             'plan.required_if' => 'Please choose a plan.',
         ] + PasswordRules::messages());
         if ($validator->fails()) {
-            return $page($validator->errors()->first());
+            return $page($validator->errors()->first(), (string) array_key_first($validator->errors()->messages()));
         }
 
         $email = (string) $request->input('email');
 
         // Same message as legacy; case-insensitive like the old MariaDB database.
         if (User::whereRaw('LOWER(email) = LOWER(?)', [$email])->exists()) {
-            return $page('Email already exists.');
+            return $page('Email already exists.', 'email');
         }
 
         try {

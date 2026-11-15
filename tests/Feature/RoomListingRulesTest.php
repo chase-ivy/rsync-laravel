@@ -64,7 +64,7 @@ class RoomListingRulesTest extends TestCase
     {
         $me = $this->user('l@gmail.com', 'landlord');
 
-        $this->actingAs($me)->post('/landlord/rooms', ['room_name' => 'Room 305', 'price' => 3900, 'max_occupants' => 2, 'description' => 'x'])
+        $this->actingAs($me)->post('/landlord/rooms', ['room_name' => 'Room 305', 'address' => '12 Lower Magsaysay Ave, Brgy. Lourdes', 'price' => 3900, 'max_occupants' => 2, 'description' => 'x'])
             ->assertRedirect(route('landlord.dashboard'));
         $this->get('/landlord/dashboard')->assertSee('Please add at least one photo of the room.');
 

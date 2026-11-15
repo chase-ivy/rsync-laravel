@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Notifications\PasswordChanged;
 use App\Support\PasswordRules;
 use App\Support\PrivateFiles;
 use App\Support\RoomPhotos;
@@ -112,6 +113,13 @@ class AccountController extends Controller
         // New session id, so an old copied session cookie stops working.
         $request->session()->regenerate();
 
+        // Tell the owner by email. If sending fails, the new password still counts.
+        try {
+            $user->notify(new PasswordChanged(now()));
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
         return back()->with('msg', 'Your password was changed.');
     }
 
@@ -202,34 +210,62 @@ class AccountController extends Controller
         return back()->with('msg', 'Your profile picture was removed.');
     }
 
-    /** POST /account/permit: landlords and sublessors upload their business permit for the admin to review. */
+    /**
+     * POST /account/permit: the original business-permit upload (field "permit").
+     * Still works; the Account page now uses uploadDocument() for every document.
+     */
     public function uploadPermit(Request $request): RedirectResponse
+    {
+        return $this->storeOwnerDocument($request, 'business_permit', 'permit', 'permit');
+    }
+
+    /** POST /account/documents/{type}: landlords and sublessors upload one verification document (field "document"). */
+    public function uploadDocument(Request $request, string $type): RedirectResponse
+    {
+        abort_unless(array_key_exists($type, User::OWNER_DOCUMENTS), 404);
+
+        return $this->storeOwnerDocument($request, $type, 'document', 'doc_' . $type);
+    }
+
+    /**
+     * Saves a verification document as a private file. Any new document goes back to the admin
+     * for review (also after a rejection), because the admin has not seen it yet.
+     */
+    private function storeOwnerDocument(Request $request, string $type, string $field, string $bag): RedirectResponse
     {
         $user = $request->user();
         abort_unless($user->isOwner(), 403);
 
-        $request->validateWithBag('permit', [
-            'permit' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
+        $doc = User::OWNER_DOCUMENTS[$type];
+        $isPermit = $type === 'business_permit';
+        $what = $isPermit ? 'business permit' : $doc['label'];
+
+        $request->validateWithBag($bag, [
+            $field => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
         ], [
-            'permit.required' => 'Please choose the file of your business permit.',
-            'permit.mimes' => 'The permit must be a picture (JPG, PNG, WEBP) or a PDF.',
-            'permit.max' => 'The file must be 5 MB or smaller.',
+            $field . '.required' => $isPermit ? 'Please choose the file of your business permit.' : "Please choose the file of your {$what}.",
+            $field . '.file' => 'Please choose a picture or PDF file.',
+            $field . '.mimes' => $isPermit ? 'The permit must be a picture (JPG, PNG, WEBP) or a PDF.' : 'The document must be a picture (JPG, PNG, WEBP) or a PDF.',
+            $field . '.max' => 'The file must be 5 MB or smaller.',
         ]);
 
-        $name = 'permit_' . $user->user_id . '_' . $this->fileName($request->file('permit'));
+        // business_permit keeps its old file prefix "permit_"; the others use their own key.
+        $prefix = $isPermit ? 'permit' : $type;
+        $name = $prefix . '_' . $user->user_id . '_' . $this->fileName($request->file($field));
 
         try {
-            PrivateFiles::store($request->file('permit'), $name);
+            PrivateFiles::store($request->file($field), $name);
         } catch (\Throwable $e) {
             report($e);
-            return back()->with('msg', "err:We couldn't upload the permit right now. Please try again.");
+            return back()->with('msg', $isPermit
+                ? "err:We couldn't upload the permit right now. Please try again."
+                : "err:We couldn't upload the document right now. Please try again.");
         }
 
-        $old = $user->business_permit;
-        // A new permit goes back to the admin for review (also after a rejection).
+        $old = $user->{$type};
         $user->forceFill([
-            'business_permit' => $name,
-            'business_permit_uploaded_at' => now(),
+            $type => $name,
+            $type . '_uploaded_at' => now(),
             'verified' => false,
             'verification_rejected_at' => null,
         ])->save();
@@ -237,7 +273,23 @@ class AccountController extends Controller
             PrivateFiles::delete($old);
         }
 
-        return back()->with('msg', 'Business permit uploaded. An admin will review it.');
+        return back()->with('msg', $isPermit
+            ? 'Business permit uploaded. An admin will review it.'
+            : "{$doc['label']} uploaded. An admin will review it.");
+    }
+
+    /** GET /account/documents/{id}/{type}: shows one verification document. Only its owner and admins may open it. */
+    public function document(Request $request, int $id, string $type): Response
+    {
+        abort_unless(array_key_exists($type, User::OWNER_DOCUMENTS), 404);
+        $viewer = $request->user();
+        abort_unless((int) $viewer->user_id === $id || $viewer->role === 'admin', 403);
+
+        $owner = User::find($id);
+        $file = $owner?->{$type} ? PrivateFiles::get($owner->{$type}) : null;
+        abort_unless($file, 404);
+
+        return $this->inline($file, str_replace('_', '-', $type) . '-' . $id);
     }
 
     /** GET /account/permit/{id}: shows a business permit. Only its owner and admins may open it. */

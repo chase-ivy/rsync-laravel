@@ -9,7 +9,8 @@
 @endsection
 
 @section('content')
-<form method="POST" action="{{ route('register.store') }}" class="box">
+{{-- novalidate: auth.js shows our own messages under each field; the server checks everything again. --}}
+<form method="POST" action="{{ route('register.store') }}" class="box" data-validate novalidate>
     @csrf
     <div class="box-logo">RS<span>Y</span>NC</div>
     <h2>Create account</h2>
@@ -19,29 +20,38 @@
         <div class="err">{{ $error }}</div>
     @endif
 
-    <div class="field">
-        <label>Email</label>
+    @php $bad = fn (string $f) => ($errorField ?? '') === $f ? ' invalid' : ''; @endphp
+    <div class="field{{ $bad('email') }}">
+        <label for="email">Email</label>
         <div class="inp-wrap">
-            <input type="email" name="email" placeholder="Your email" required value="{{ request('email', '') }}">
+            <input type="email" id="email" name="email" placeholder="name@gmail.com" required autocomplete="email" value="{{ request('email', '') }}">
             <i class="bx bx-envelope"></i>
         </div>
+        <p class="f-msg" data-msg-for="email"></p>
     </div>
 
-    <div class="field">
-        <label>Password</label>
+    <div class="field{{ $bad('password') }}">
+        <label for="pw">Password</label>
         <div class="inp-wrap">
             <input type="password" id="pw" name="password" placeholder="••••••••" minlength="8" required autocomplete="new-password">
             <i class="bx bx-show clickable" onclick="togglePw()"></i>
         </div>
-        <p class="pw-hint">{{ \App\Support\PasswordRules::HINT }}</p>
+        <ul class="pw-rules" data-pw-rules aria-live="polite">
+            <li data-rule="length"><i class="bx bx-circle"></i> At least 8 characters</li>
+            <li data-rule="upper"><i class="bx bx-circle"></i> An uppercase letter (A–Z)</li>
+            <li data-rule="lower"><i class="bx bx-circle"></i> A lowercase letter (a–z)</li>
+            <li data-rule="number"><i class="bx bx-circle"></i> A number (0–9)</li>
+        </ul>
+        <p class="f-msg" data-msg-for="password"></p>
     </div>
 
     <div class="field">
-        <label>Confirm Password</label>
+        <label for="password_confirmation">Confirm Password</label>
         <div class="inp-wrap">
-            <input type="password" name="password_confirmation" placeholder="••••••••" minlength="8" required autocomplete="new-password">
+            <input type="password" id="password_confirmation" name="password_confirmation" placeholder="••••••••" minlength="8" required autocomplete="new-password">
             <i class="bx bx-lock-alt"></i>
         </div>
+        <p class="f-msg" data-msg-for="password_confirmation"></p>
     </div>
 
     @if ($lockedPlan)
@@ -58,7 +68,7 @@
         <input type="hidden" name="role" value="landlord">
     </div>
     @else
-    <div class="field">
+    <div class="field{{ $bad('role') }}">
         <label>Role</label>
         <div class="inp-wrap">
             <select name="role" required>
@@ -69,11 +79,12 @@
             </select>
             <i class="bx bx-chevron-down"></i>
         </div>
+        <p class="f-msg" data-msg-for="role"></p>
     </div>
 
     {{-- Shown only for Landlord / Sublessor (auth.js shows and hides it when the role changes). --}}
     @php $needsPlan = in_array($selectedRole, ['landlord', 'sublessor'], true); @endphp
-    <div class="field" id="plan-field"{{ $needsPlan ? '' : ' hidden' }}>
+    <div class="field{{ $bad('plan') }}" id="plan-field"{{ $needsPlan ? '' : ' hidden' }}>
         <label>Plan</label>
         <div class="inp-wrap">
             <select name="plan" id="plan" {{ $needsPlan ? 'required' : 'disabled' }}>
@@ -84,6 +95,7 @@
             </select>
             <i class="bx bx-chevron-down"></i>
         </div>
+        <p class="f-msg" data-msg-for="plan"></p>
     </div>
     @endif
 

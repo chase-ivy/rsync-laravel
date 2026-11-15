@@ -37,7 +37,10 @@
                         <td>{{ $code($req->request_id) }}</td>
                         <td>{{ $req->tenant?->name ?? '—' }}</td>
                         <td>{{ $req->room?->room_name ?? '—' }}</td>
-                        <td>{{ $req->description }}</td>
+                        <td>
+                            {{ $req->description }}
+                            @if ($req->landlord_note)<div class="card-sub">Landlord: {{ $req->landlord_note }}</div>@endif
+                        </td>
                         <td>{{ $req->submitted_at?->format('Y-m-d') ?? '—' }}</td>
                         <td><span class="badge badge-{{ \Illuminate\Support\Str::slug($req->status) }}">{{ $req->status }}</span></td>
                         <td>

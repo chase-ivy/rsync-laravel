@@ -1,0 +1,56 @@
+/* RSYNC printable rental agreement (A4). Same colours as the dashboards. */
+:root{--ink:#0a0a0f;--ink2:#3d3d4a;--ink3:#8e8ea0;--bg:#f4f3ef;--amber:#e8a020;--border:rgba(0,0,0,.12);}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.55;}
+a{text-decoration:none;}
+
+nav{background:var(--ink);display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:56px;}
+nav span{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;letter-spacing:3px;}
+nav span em{color:var(--amber);font-style:normal;}
+nav .nav-actions{display:flex;align-items:center;gap:10px;}
+nav a{font-size:13px;color:rgba(255,255,255,.65);border:1px solid rgba(255,255,255,.2);padding:6px 14px;border-radius:8px;}
+nav a:hover{color:#fff;border-color:rgba(255,255,255,.5);}
+.print-btn{font-family:inherit;font-size:13px;font-weight:600;background:var(--amber);color:#fff;border:0;padding:8px 14px;border-radius:8px;cursor:pointer;}
+.print-btn:hover{background:#d08e14;}
+
+/* The "sheet of paper": about A4 width on screen */
+.paper{background:#fff;width:210mm;max-width:96%;margin:26px auto 40px;padding:18mm 18mm 14mm;box-shadow:0 2px 16px rgba(0,0,0,.08);border-radius:6px;}
+.doc-head{text-align:center;border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:16px;}
+.brand{font-family:'Syne',sans-serif;font-weight:800;letter-spacing:2px;font-size:13px;color:var(--ink2);}
+.brand em{color:var(--amber);font-style:normal;}
+.doc-head h1{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin:4px 0 8px;}
+.doc-meta{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--ink2);}
+
+h2{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;margin:18px 0 8px;text-transform:uppercase;letter-spacing:.4px;}
+.parties{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:6px;}
+.party{border:1px solid var(--border);border-radius:8px;padding:10px 14px;}
+.party h2{margin-top:0;}
+dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:13px;}
+dt{color:var(--ink3);}
+dd{font-weight:500;word-break:break-word;}
+
+.terms{width:100%;border-collapse:collapse;font-size:13px;}
+.terms th,.terms td{border:1px solid var(--border);padding:7px 10px;text-align:left;vertical-align:top;}
+.terms th{width:34%;background:#fafaf8;font-weight:600;color:var(--ink2);}
+.muted{color:var(--ink3);font-size:12px;}
+.rules{padding-left:20px;font-size:13px;}
+.rules li{margin-bottom:4px;}
+.agree{margin-top:18px;font-size:13px;}
+
+.signatures{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:44px;}
+.sign .line{border-bottom:1px solid var(--ink);height:38px;}
+.sign .who{font-weight:600;margin-top:6px;}
+.sign .role,.sign .date{font-size:12px;color:var(--ink2);}
+.sign .date{margin-top:10px;}
+.doc-foot{margin-top:30px;padding-top:8px;border-top:1px solid var(--border);font-size:11px;color:var(--ink3);text-align:center;}
+
+@media(max-width:700px){.paper{padding:20px;}.parties,.signatures{grid-template-columns:1fr;}nav{padding:0 16px;}}
+
+/* Printing / Save as PDF: only the agreement, on plain white A4 */
+@page{size:A4;margin:14mm;}
+@media print{
+    .no-print{display:none !important;}
+    body{background:#fff;font-size:12px;}
+    .paper{width:auto;max-width:none;margin:0;padding:0;box-shadow:none;border-radius:0;}
+    section,.signatures{break-inside:avoid;}
+}

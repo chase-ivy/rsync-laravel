@@ -64,6 +64,7 @@ class RoomPhotosSupabaseTest extends TestCase
 
         $this->actingAs($this->landlord())->post('/landlord/rooms', [
             'room_name' => 'Room 201', 'price' => 4500, 'max_occupants' => 2, 'description' => 'x',
+            'address' => '12 Lower Magsaysay Ave, Brgy. Lourdes',
             'images' => [UploadedFile::fake()->image('cover photo.jpg')],
         ])->assertRedirect(route('landlord.dashboard'));
 
@@ -94,6 +95,7 @@ class RoomPhotosSupabaseTest extends TestCase
 
         $this->actingAs($this->landlord())->post('/landlord/rooms', [
             'room_name' => 'Room 201', 'price' => 4500, 'max_occupants' => 2, 'description' => 'x',
+            'address' => '12 Lower Magsaysay Ave, Brgy. Lourdes',
             'images' => [UploadedFile::fake()->image('a.jpg')],
         ])->assertRedirect(route('landlord.dashboard'));
 

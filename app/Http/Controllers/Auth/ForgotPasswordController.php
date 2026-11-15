@@ -124,6 +124,13 @@ class ForgotPasswordController extends Controller
             $attempts = $request->session()->increment('reset_attempts');
             if ($reset && $attempts >= self::MAX_ATTEMPTS) {
                 $reset->update(['used' => true]);
+
+        // Tell the owner by email. If sending fails, the new password still counts.
+        try {
+            $user->notify(new \App\Notifications\PasswordChanged(now()));
+        } catch (Throwable $e) {
+            report($e);
+        }
             }
 
             return view('auth.verify-otp', [
@@ -194,6 +201,13 @@ class ForgotPasswordController extends Controller
         $user->save();
 
         $reset->update(['used' => true]);
+
+        // Tell the owner by email. If sending fails, the new password still counts.
+        try {
+            $user->notify(new \App\Notifications\PasswordChanged(now()));
+        } catch (Throwable $e) {
+            report($e);
+        }
 
         $request->session()->forget(['reset_email', 'reset_verified', 'reset_attempts', 'dev_otp']);
         $request->session()->put('reset_success', 'Password updated. Please sign in.');
