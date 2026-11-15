@@ -1,6 +1,6 @@
 /* RSYNC tenant dashboard.
-   Idea: Baguio fog for the page, and one sunflower-amber "door plate" for the tenant's room
-   (wild sunflowers bloom on the Baguio hills every November; amber is also the RSYNC "Y").
+   Idea: Baguio fog for the page, quiet paper cards, and amber kept for the main actions.
+   (Amber is the RSYNC "Y".)
    Everything else stays quiet: fog, paper, night-blue ink, hairline borders, no shadows. */
 :root{
     --fog:#e3e8eb;       /* page */
@@ -9,7 +9,7 @@
     --line:#c7d0d7;      /* hairlines */
     --night:#17202a;     /* text, ink buttons */
     --slate:#46535f;     /* secondary text (6:1 on fog) */
-    --sun:#e8a020;       /* door plate, primary actions */
+    --sun:#e8a020;       /* primary actions */
     --sun-2:#f1b443;     /* hover on sun */
     --moss:#1f6a45;      /* verified / done */
     --berry:#9e2335;     /* rejected / errors */
@@ -114,7 +114,7 @@ html:not(.js) .side-toggle{display:none;}
 .muted{color:var(--slate);}
 .empty{display:flex;align-items:flex-start;gap:12px;color:var(--slate);}
 .empty i{font-size:24px;color:var(--night);flex-shrink:0;margin-top:-1px;}
-.empty a,.plate-lead a{color:var(--night);font-weight:650;text-underline-offset:3px;}
+.empty a{color:var(--night);font-weight:650;text-underline-offset:3px;}
 
 /* ── Buttons & badges ── */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:0 18px;border:1px solid transparent;border-radius:10px;font-weight:650;font-size:14.5px;cursor:pointer;text-decoration:none;white-space:nowrap;}
@@ -140,46 +140,22 @@ html:not(.js) .side-toggle{display:none;}
 .ov-main{display:grid;gap:20px;}
 .ov-side{display:grid;gap:20px;}
 
-/* The door plate: the one bold element. */
-.plate{position:relative;overflow:hidden;container-type:inline-size;background:var(--sun);color:var(--night);border-radius:26px;padding:clamp(22px,3vw,34px);isolation:isolate;}
-/* Baguio's hills as faint contour lines in the corner. */
-.plate::before{content:"";position:absolute;z-index:-1;right:-60px;top:-40px;width:440px;height:440px;opacity:.5;
-    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-30 -30 460 470' fill='none' stroke='%23b97706' stroke-width='1.4'%3E%3Cpath d='M40 330c40-70 90-60 120-120s60-120 130-110 90 70 70 130-80 70-110 120-40 90-120 70-120-30-90-90z'/%3E%3Cpath d='M80 320c30-50 70-50 95-100s50-95 105-85 70 55 55 100-60 55-85 95-35 70-95 55-95-20-75-65z'/%3E%3Cpath d='M120 305c22-35 50-35 70-75s38-70 78-62 52 40 40 72-45 40-62 70-25 50-70 40-68-15-56-45z'/%3E%3Cpath d='M160 290c14-22 30-22 45-50s25-45 52-40 34 26 26 47-29 26-40 46-17 32-45 26-44-10-38-29z'/%3E%3Cpath d='M195 275c8-12 17-12 26-28s14-25 29-22 19 14 14 26-16 15-22 26-10 18-25 14-24-6-22-16z'/%3E%3C/svg%3E") center/contain no-repeat;}
-.plate-top{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;}
-.plate-status{display:inline-flex;align-items:center;gap:7px;font-weight:700;font-size:14px;}
-.plate-status::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--night);box-shadow:0 0 0 3px rgba(23,32,42,.18);}
-.plate-addr{display:flex;align-items:center;gap:5px;font-size:14px;}
-.plate-addr i{font-size:16px;}
-.plate-name{font-size:clamp(60px,20cqi,132px);font-weight:850;font-stretch:var(--wdth-tight);line-height:.86;letter-spacing:-.015em;margin:18px 0 22px;overflow-wrap:anywhere;max-width:12ch;}
-.plate-facts{display:grid;grid-template-columns:repeat(3,auto);justify-content:start;gap:12px 36px;padding:16px 0;border-top:1.5px solid rgba(23,32,42,.28);}
-.plate-facts dt{font-size:13px;font-weight:600;opacity:.82;}
-.plate-facts dd{font-size:17px;font-weight:700;line-height:1.3;}
-.plate-facts small{display:block;font-size:13px;font-weight:500;}
-
-.strip{margin:6px 0 22px;}
-.strip-months{list-style:none;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px;}
-.strip-months li{display:flex;flex-direction:column;gap:6px;font-size:12.5px;font-weight:550;text-align:center;}
-.strip-months li::before{content:"";display:block;height:12px;border-radius:3px;background:rgba(23,32,42,.2);transform-origin:left center;}
-.strip-months li:first-child::before{border-radius:6px 3px 3px 6px;}
-.strip-months li:last-child::before{border-radius:3px 6px 6px 3px;}
-.strip-months li.is-past::before{background:var(--night);}
-.strip-months li.is-now::before{background:repeating-linear-gradient(135deg,var(--night) 0 4px,rgba(23,32,42,.45) 4px 7px);}
-.strip-months li.is-now{font-weight:800;}
-.m-short{display:none;}
-.strip-left{margin-top:10px;font-weight:650;}
-
-.plate-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;}
-.accept-ok{font-weight:700;}
-.accept-todo{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border-radius:10px;background:var(--paper);font-weight:650;}
-.accept-todo i{font-size:18px;color:var(--berry);}
-
-.plate-empty .plate-name{max-width:none;}
-.plate-lead{font-size:17px;max-width:44ch;margin:-6px 0 22px;}
-
-@media (prefers-reduced-motion:no-preference){
-    .strip-months li::before{animation:fill .5s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 45ms + 150ms);}
-}
-@keyframes fill{from{transform:scaleX(0);}}
+/* My room: a plain summary card */
+.room-sum{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px;}
+.room-sum h3{font-size:24px;font-weight:700;line-height:1.2;}
+.rs-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;}
+.rs-addr{display:flex;align-items:center;gap:5px;margin-top:2px;color:var(--slate);}
+.rs-addr i{font-size:17px;}
+.rs-live{display:inline-flex;align-items:center;gap:7px;flex-shrink:0;font-size:14px;font-weight:650;color:var(--moss);}
+.rs-live::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--moss);}
+.rs-grid{display:grid;grid-template-columns:repeat(3,auto);justify-content:start;gap:12px 44px;margin:18px 0;padding-top:16px;border-top:1px solid var(--line);}
+.rs-grid dt{font-size:14px;color:var(--slate);}
+.rs-grid dd{font-size:16px;font-weight:650;}
+.rs-grid small{display:block;font-size:14px;font-weight:400;color:var(--slate);}
+.rs-foot{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;}
+.rs-ok{display:inline-flex;align-items:center;gap:6px;font-weight:650;color:var(--moss);}
+.rs-ok i{font-size:19px;}
+.rs-lead{color:var(--slate);margin:6px 0 16px;}
 
 /* Next rent */
 .rent-line{font-size:22px;font-stretch:88%;font-weight:600;line-height:1.2;}
@@ -189,7 +165,7 @@ html:not(.js) .side-toggle{display:none;}
 .rent-foot{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);display:grid;gap:12px;font-size:14px;color:var(--slate);}
 .rent-foot strong{color:var(--night);}
 
-/* Updates: one row per section; three across under the plate on wide screens */
+/* Updates: one row per section; three across under the room card on wide screens */
 .glance{padding-bottom:10px;}
 .glance-rows{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:0 -12px;}
 .glance-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"icon title" ". sub" ". badge";grid-template-columns:auto minmax(0,1fr);align-items:center;justify-items:start;column-gap:10px;row-gap:3px;padding:10px 14px;border-radius:10px;text-decoration:none;}
@@ -306,13 +282,11 @@ html:not(.js) .side-toggle{display:none;}
     body{font-size:15.5px;}
     .wrap{padding-top:20px;}
     .hello{margin-bottom:16px;}
-    .plate{border-radius:22px;}
-    .plate::before{width:300px;height:300px;right:-90px;top:-30px;}
-    .plate-name{margin:14px 0 18px;}
-    .plate-facts{grid-template-columns:1fr 1fr;gap:12px 20px;}
-    .plate-facts > div:nth-child(2){grid-column:1 / -1;grid-row:1;}
-    .strip-months:has(li:nth-child(8)) .m-long{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
-    .strip-months:has(li:nth-child(8)) .m-short{display:inline;}
+    .rs-head{flex-direction:column;gap:6px;}
+    .rs-live{order:-1;}
+    .rs-grid{grid-template-columns:1fr 1fr;gap:12px 20px;}
+    .rs-grid .rs-wide{grid-column:1 / -1;order:3;}
+    .rs-foot .btn-sun{width:100%;white-space:normal;}
     .glance-rows{grid-template-columns:1fr;}
     .glance-row{grid-template-areas:"icon title badge" ". sub sub";grid-template-columns:auto minmax(0,1fr) auto;}
     .glance-row .badge{margin-top:0;justify-self:end;}

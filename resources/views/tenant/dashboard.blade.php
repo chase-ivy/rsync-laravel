@@ -31,7 +31,7 @@
     $firstBooking = $bookings->first();
 @endphp
 
-{{-- "Updates" card: under the room plate, or in the side column when there is no room to show. --}}
+{{-- "Updates" card: under the room card, or in the side column when there is no room to show. --}}
 @php $glanceInSide = $bookings->isEmpty(); @endphp
 @section('glance')
                 <div class="card glance">
@@ -124,52 +124,38 @@
                     @php
                         $start = $b->start_date;
                         $end = $b->end_date;
-                        $days = round(($end->getTimestamp() - $start->getTimestamp()) / 86400);
+                        $days = (int) round(($end->getTimestamp() - $start->getTimestamp()) / 86400);
                         $left = max(0, (int) now()->startOfDay()->diffInDays($end, false));
-                        $months = $b->stayMonths($now);
                     @endphp
-                    {{-- The one loud thing on the page: the room, set like the number plate on its door. --}}
-                    <article class="plate">
-                        <div class="plate-top">
-                            <span class="plate-status">Renting now</span>
-                            @if ($b->room->address)<p class="plate-addr"><i class="bx bx-map" aria-hidden="true"></i>{{ $b->room->address }}</p>@endif
+                    <article class="room-sum">
+                        <div class="rs-head">
+                            <div>
+                                <h3>{{ $b->room->room_name }}</h3>
+                                @if ($b->room->address)<p class="rs-addr"><i class="bx bx-map" aria-hidden="true"></i>{{ $b->room->address }}</p>@endif
+                            </div>
+                            <span class="rs-live">Renting now</span>
                         </div>
 
-                        <h3 class="plate-name">{{ $b->room->room_name }}</h3>
-
-                        <dl class="plate-facts">
-                            <div><dt>Rent</dt><dd>{{ $peso($b->monthly_rent ?? $b->room->price) }}<small>a month</small></dd></div>
-                            <div><dt>Stay</dt><dd>{{ $start->format('M d, Y') }} - {{ $end->format('M d, Y') }}<small>{{ $days }} days</small></dd></div>
-                            <div><dt>Sharing</dt><dd>{{ (int) $b->room->current_occupants }}/{{ (int) $b->room->max_occupants }} occupants</dd></div>
+                        <dl class="rs-grid">
+                            <div><dt>Rent</dt><dd>{{ $peso($b->monthly_rent ?? $b->room->price) }} <small>a month</small></dd></div>
+                            <div class="rs-wide"><dt>Stay</dt><dd>{{ $start->format('M d, Y') }} to {{ $end->format('M d, Y') }} <small>{{ $left }} {{ $left === 1 ? 'day' : 'days' }} left of {{ $days }}</small></dd></div>
+                            <div><dt>Sharing</dt><dd>{{ (int) $b->room->current_occupants }} of {{ (int) $b->room->max_occupants }} <small>occupants</small></dd></div>
                         </dl>
 
-                        @if ($months)
-                        <div class="strip">
-                            <ol class="strip-months" aria-label="Months of your stay">
-                                @foreach ($months as $i => $mo)
-                                    <li class="is-{{ $mo['state'] }}" style="--i: {{ $i }}" title="{{ $mo['label'] }} {{ $mo['year'] }}">
-                                        <span class="m-long">{{ $mo['label'] }}</span><span class="m-short" aria-hidden="true">{{ substr($mo['label'], 0, 1) }}</span>@if ($mo['state'] === 'now')<span class="sr-only"> (this month)</span>@endif
-                                    </li>
-                                @endforeach
-                            </ol>
-                            <p class="strip-left">{{ $left }} {{ $left === 1 ? 'day' : 'days' }} left in your contract</p>
-                        </div>
-                        @endif
-
-                        <div class="plate-actions">
-                            <a href="{{ route('contracts.show', $b->tenant_id) }}" class="btn btn-ink" target="_blank" rel="noopener"><i class="bx bx-file" aria-hidden="true"></i>View contract</a>
+                        <div class="rs-foot">
                             @if ($b->isAccepted())
-                                <span class="accept-ok">✓ Accepted</span>
+                                <span class="rs-ok"><i class="bx bx-check-circle" aria-hidden="true"></i>Contract accepted</span>
+                                <a href="{{ route('contracts.show', $b->tenant_id) }}" class="btn btn-line btn-sm" target="_blank" rel="noopener"><i class="bx bx-file" aria-hidden="true"></i>View contract</a>
                             @else
-                                <span class="accept-todo"><i class="bx bx-error-circle" aria-hidden="true"></i>Please review and accept your contract</span>
+                                <a href="{{ route('contracts.show', $b->tenant_id) }}" class="btn btn-sun" target="_blank" rel="noopener">Review and accept your contract</a>
                             @endif
                         </div>
                     </article>
                 @empty
-                    <article class="plate plate-empty">
-                        <h3 class="plate-name">No room yet</h3>
-                        <p class="plate-lead">You are not renting a room yet. <a href="{{ route('rooms.index') }}">Browse rooms</a> to find your next home.</p>
-                        <div class="plate-actions">
+                    <article class="room-sum">
+                        <h3>No room yet</h3>
+                        <p class="rs-lead">You are not renting a room yet. Browse rooms to find your next home.</p>
+                        <div class="rs-foot">
                             <a href="{{ route('rooms.index') }}" class="btn btn-ink"><i class="bx bx-search" aria-hidden="true"></i>Find a room</a>
                         </div>
                     </article>

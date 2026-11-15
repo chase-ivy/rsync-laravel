@@ -97,7 +97,7 @@ class ContractPageTest extends TestCase
         [$contract, $tenant, $landlord] = $this->contract();
         $url = route('contracts.show', $contract->tenant_id);
 
-        $this->actingAs($tenant)->get('/tenant/dashboard')->assertSee($url)->assertSee('View contract');
+        $this->actingAs($tenant)->get('/tenant/dashboard')->assertSee($url)->assertSee('Review and accept your contract');
         $this->actingAs($landlord)->get('/landlord/tenants')->assertSee($url)->assertSee('Contract');
         $this->actingAs($this->user('a@gmail.com', 'admin', 'Admin'))->get('/admin/tenants')->assertSee($url);
     }

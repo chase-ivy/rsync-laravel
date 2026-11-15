@@ -60,9 +60,9 @@ class TenantDashboardTest extends TestCase
         $this->actingAs($me)->get('/tenant/dashboard')
             ->assertSee('Room 201')
             ->assertSee('₱4,500')
-            ->assertSee('May 01, 2026 - Aug 29, 2026')
-            ->assertSee('120 days')
-            ->assertSee('2/4 occupants')
+            ->assertSee('May 01, 2026 to Aug 29, 2026')
+            ->assertSee('left of 120')
+            ->assertSee('2 of 4 <small>occupants</small>', false)
             ->assertDontSee('Old Room');
     }
 
@@ -146,7 +146,6 @@ class TenantDashboardTest extends TestCase
             ->assertSee('due Tue, Dec 1')
             ->assertSee('In 16 days')
             ->assertSee('Paid and confirmed: <strong>₱9,000.00</strong>', false)
-            ->assertSee('Waiting for confirmation: <strong>₱1,000.00</strong>', false)
-            ->assertSee('class="is-now"', false);
+            ->assertSee('Waiting for confirmation: <strong>₱1,000.00</strong>', false);
     }
 }

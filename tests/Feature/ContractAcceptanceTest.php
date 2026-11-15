@@ -213,9 +213,9 @@ class ContractAcceptanceTest extends TestCase
     {
         [$c, , $tenant] = $this->contract();
 
-        $this->actingAs($tenant)->get('/tenant/dashboard')->assertSee('Please review and accept your contract');
+        $this->actingAs($tenant)->get('/tenant/dashboard')->assertSee('Review and accept your contract');
 
         $c->update(['accepted_at' => now()]);
-        $this->actingAs($tenant)->get('/tenant/dashboard')->assertDontSee('Please review and accept your contract')->assertSee('✓ Accepted');
+        $this->actingAs($tenant)->get('/tenant/dashboard')->assertDontSee('Review and accept your contract')->assertSee('Contract accepted');
     }
 }
