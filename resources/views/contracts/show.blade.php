@@ -8,7 +8,7 @@
 
 @section('content')
 @php
-    $rent = (int) ($room?->price ?? 0);
+    $rent = (float) $terms['monthly_rent'];   // the rent saved on the contract (see Tenancy::contractTerms())
     $dash = '________________';
 @endphp
 
@@ -16,10 +16,14 @@
 <nav class="no-print">
     <span>RS<em>Y</em>NC</span>
     <div class="nav-actions">
-        <a href="{{ route($backRoute) }}">Back to Dashboard</a>
+        <a href="{{ route($backRoute) }}">{{ $backLabel ?? 'Back to Dashboard' }}</a>
         <button type="button" class="print-btn" onclick="window.print()">Print / Save as PDF</button>
     </div>
 </nav>
+
+@if (! empty($preview))
+    <p class="preview-note no-print">Sample preview of your contract format. Real contracts show the tenant's details and the dates you enter when assigning.</p>
+@endif
 
 <main class="paper">
     <header class="doc-head">
@@ -29,6 +33,12 @@
             <span>Contract No. <strong>{{ $code }}</strong></span>
             <span>Status: <strong>{{ $contract->status }}</strong></span>
             <span>Printed: {{ now()->format('F j, Y') }}</span>
+        </div>
+        <div class="doc-meta set-by">
+            <span>Terms set by the landlord</span>
+            @if ($contract->terms_updated_at)
+                <span>Last updated on <strong>{{ $contract->terms_updated_at->format('F j, Y') }}</strong></span>
+            @endif
         </div>
     </header>
 
@@ -80,33 +90,48 @@
             <tr><th>Start date</th><td>{{ $contract->start_date?->format('F j, Y') ?? $dash }}</td></tr>
             <tr><th>End date</th><td>{{ $contract->end_date?->format('F j, Y') ?? $dash }}@if ($months) <span class="muted">(about {{ $months }} month{{ $months === 1 ? '' : 's' }})</span>@endif</td></tr>
             <tr><th>Monthly rent</th><td><strong>₱{{ number_format($rent, 2) }}</strong> per month</td></tr>
+            @if ($terms['deposit'] !== null)
+            <tr><th>Security deposit</th><td>₱{{ number_format((float) $terms['deposit'], 2) }}</td></tr>
+            @endif
+            @if ($terms['advance_months'] !== null)
+            <tr><th>Advance payment</th><td>{{ $terms['advance_months'] }} month{{ (int) $terms['advance_months'] === 1 ? '' : 's' }} of rent in advance</td></tr>
+            @endif
+            @if (filled($terms['utilities_note']))
+            <tr><th>Utilities</th><td>{{ $terms['utilities_note'] }}</td></tr>
+            @endif
         </table>
     </section>
 
     <section>
-        <h2>3. Terms and conditions</h2>
-        {{-- Generic terms; the landlord and tenant may agree on changes in writing. --}}
-        <ol class="rules">
-            <li>Rent is paid in advance on or before the same day of each month as the start date. Payments are recorded in RSYNC and confirmed by the landlord or admin.</li>
-            <li>The room may only be used as a residence by the tenant. The number of occupants must not go over the maximum stated above.</li>
-            <li>The tenant keeps the room clean and in good condition and pays for damage caused by the tenant or their guests, except normal wear and tear.</li>
-            <li>Repairs are requested through the Maintenance section of RSYNC. The landlord attends to them within a reasonable time.</li>
-            <li>The tenant may not sublet the room or transfer this agreement without the landlord's written consent.</li>
-            <li>Either party who wants to end the agreement before the end date gives at least 30 days' written notice.</li>
-            <li>On leaving, the tenant returns all keys and leaves the room in the condition it was received.</li>
-        </ol>
+        <h2>3. Repairs and damages</h2>
+        <p class="repairs">{{ \App\Support\ContractDefaults::repairsSentence($terms['repairs_policy']) }}</p>
+    </section>
+
+    {{-- Terms and house rules are written by the landlord (Contract page), one item per line. --}}
+    <section>
+        <h2>4. Terms and conditions</h2>
+        @if ($terms['terms'])
+            <ol class="rules">
+                @foreach ($terms['terms'] as $line)
+                    <li>{{ $line }}</li>
+                @endforeach
+            </ol>
+        @else
+            <p class="muted">No additional terms.</p>
+        @endif
     </section>
 
     <section>
-        <h2>4. House rules</h2>
-        <ol class="rules">
-            <li>Quiet hours are from 10:00 PM to 6:00 AM. Be considerate of other boarders.</li>
-            <li>Visitors are received only in common areas and must leave by 9:00 PM unless the landlord agrees otherwise.</li>
-            <li>Smoking, illegal drugs, gambling and weapons are not allowed on the premises.</li>
-            <li>Cooking is allowed only in designated areas. Unplug appliances when not in use and follow fire safety rules.</li>
-            <li>Save water and electricity. Report leaks and electrical problems right away.</li>
-            <li>Throw away garbage properly and follow the barangay's waste segregation schedule.</li>
-        </ol>
+        <h2>5. House rules</h2>
+        @if ($terms['house_rules'])
+            <ol class="rules">
+                @foreach ($terms['house_rules'] as $line)
+                    <li>{{ $line }}</li>
+                @endforeach
+            </ol>
+        @else
+            <p class="muted">No house rules listed.</p>
+        @endif
     </section>
 
     <p class="agree">By signing below, both parties confirm that they have read, understood and agreed to this agreement.</p>
@@ -126,6 +151,6 @@
         </div>
     </section>
 
-    <footer class="doc-foot">Generated by RSYNC from contract {{ $code }}. This is a general template; check it against your own agreement and local rules before signing.</footer>
+    <footer class="doc-foot">Generated by RSYNC from contract {{ $code }}. The terms and house rules were set by the landlord; read them carefully and check them against local rules before signing.</footer>
 </main>
 @endsection

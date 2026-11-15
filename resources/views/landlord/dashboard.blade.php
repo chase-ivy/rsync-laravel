@@ -31,6 +31,7 @@ data-url-reject="{{ route('landlord.applications.reject') }}"
     <div class="nav-actions">
         <a href="{{ route('account') }}">Account</a>
         <a href="{{ route('landlord.tenants') }}">Tenants</a>
+        <a href="{{ route('landlord.contract') }}">Contract</a>
         <a href="{{ route('landlord.maintenance') }}">Maintenance</a>
         <a href="{{ route('logout') }}">Logout</a>
     </div>

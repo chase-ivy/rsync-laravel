@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\LandlordContractController;
 use App\Http\Controllers\LandlordController;
 use App\Http\Controllers\LandlordTenantController;
 use App\Http\Controllers\MaintenanceController;
@@ -95,6 +96,9 @@ Route::middleware('role:landlord,sublessor')->prefix('landlord')->name('landlord
     Route::get('/dashboard', [LandlordController::class, 'index'])->name('dashboard');
     Route::get('/maintenance', [MaintenanceController::class, 'index'])->name('maintenance');   // maintenance.php
     Route::get('/tenants', [LandlordTenantController::class, 'page'])->name('tenants');   // new: my current tenants
+    Route::get('/contract', [LandlordContractController::class, 'template'])->name('contract');   // new: my contract format
+    Route::get('/contract/preview', [LandlordContractController::class, 'preview'])->name('contract.preview');
+    Route::get('/contracts/{tenancy}/edit', [LandlordContractController::class, 'edit'])->whereNumber('tenancy')->name('contracts.edit');
 
     Route::middleware('verified')->group(function () {
         Route::post('/rooms', [LandlordController::class, 'store'])->name('rooms.store');
@@ -106,6 +110,8 @@ Route::middleware('role:landlord,sublessor')->prefix('landlord')->name('landlord
 
         Route::post('/rooms/tenants', [LandlordTenantController::class, 'roomTenants'])->name('rooms.tenants');
         Route::post('/rooms/applicants', [LandlordTenantController::class, 'applicants'])->name('rooms.applicants');
+        Route::post('/contract', [LandlordContractController::class, 'saveTemplate'])->name('contract.save');
+        Route::post('/contracts/{tenancy}/edit', [LandlordContractController::class, 'update'])->whereNumber('tenancy')->name('contracts.update');
         Route::post('/tenants/assign', [LandlordTenantController::class, 'assign'])->name('tenants.assign');
         Route::post('/tenants/remove', [LandlordTenantController::class, 'remove'])->name('tenants.remove');
         Route::post('/applications/verify', [LandlordTenantController::class, 'verify'])->name('applications.verify');

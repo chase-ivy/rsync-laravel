@@ -14,6 +14,7 @@
         <a href="{{ route('landlord.dashboard') }}">Dashboard</a>
         <a href="{{ route('account') }}">Account</a>
         <a href="{{ route('landlord.tenants') }}">Tenants</a>
+        <a href="{{ route('landlord.contract') }}">Contract</a>
         <a href="{{ route('logout') }}">Logout</a>
     </div>
 </nav>

@@ -54,3 +54,9 @@ dd{font-weight:500;word-break:break-word;}
     .paper{width:auto;max-width:none;margin:0;padding:0;box-shadow:none;border-radius:0;}
     section,.signatures{break-inside:avoid;}
 }
+
+/* Landlord-set terms: "Terms set by the landlord" line, repairs sentence, preview note */
+.doc-meta.set-by{margin-top:6px;font-size:11px;color:var(--ink3);}
+.repairs{font-size:13px;border-left:3px solid var(--amber);padding:6px 10px;background:#fffbeb;}
+.preview-note{width:210mm;max-width:96%;margin:18px auto 0;padding:10px 14px;border-radius:8px;background:#fffbeb;border:1px solid #fde68a;color:#92400e;font-size:13px;}
+@media print{.repairs{background:none;}}

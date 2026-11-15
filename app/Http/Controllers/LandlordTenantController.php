@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ContractTemplate;
 use App\Models\Room;
 use App\Models\RoomApplication;
 use App\Models\Tenancy;
@@ -27,7 +28,15 @@ class LandlordTenantController extends Controller
             ->sortBy([fn ($t) => $t->room?->room_name, fn ($t) => $t->user?->name])
             ->values();
 
-        return view('landlord.tenants', ['tenancies' => $tenancies, 'today' => now()->startOfDay()]);
+        $msg = $request->session()->pull('msg');   // e.g. after editing a contract
+        $isErr = $msg && str_starts_with($msg, 'err:');
+
+        return view('landlord.tenants', [
+            'tenancies' => $tenancies,
+            'today' => now()->startOfDay(),
+            'msg' => $isErr ? substr($msg, 4) : $msg,
+            'isErr' => $isErr,
+        ]);
     }
 
     /** POST /landlord/tenants/assign */
@@ -46,7 +55,9 @@ class LandlordTenantController extends Controller
         $start = (string) $request->input('start_date', '');
         $end = (string) $request->input('end_date', '');
 
-        return DB::transaction(function () use ($room, $tenant, $start, $end) {
+        $owner = $request->user();
+
+        return DB::transaction(function () use ($room, $tenant, $start, $end, $owner) {
             $room = Room::whereKey($room->room_id)->lockForUpdate()->first();   // two clicks at once can't overfill the room
             $current = $room->tenancies()->where('status', 'Active')->count();
 
@@ -70,13 +81,16 @@ class LandlordTenantController extends Controller
                 return $this->error("{$tenant->name} already has a room ({$where}). Remove them there first.");
             }
 
+            // The contract keeps its own copy of today's rent and the landlord's terms,
+            // so changing the room price or the template later doesn't change this contract.
             Tenancy::create([
                 'user_id' => $tenant->user_id,
                 'room_id' => $room->room_id,
                 'start_date' => $start,
                 'end_date' => $end,
                 'status' => 'Active',
-            ]);
+                'monthly_rent' => (float) $room->price,
+            ] + ContractTemplate::termsFor($owner));
 
             $room->update(['status' => $current + 1 >= $room->max_occupants ? 'Occupied' : 'Available']);
 

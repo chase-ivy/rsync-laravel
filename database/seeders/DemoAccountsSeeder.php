@@ -2,10 +2,12 @@
 
 namespace Database\Seeders;
 
+use App\Models\ContractTemplate;
 use App\Models\Room;
 use App\Models\RoomApplication;
 use App\Models\Tenancy;
 use App\Models\User;
+use App\Support\ContractDefaults;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -82,11 +84,29 @@ class DemoAccountsSeeder extends Seeder
             ]
         );
 
+        // The demo landlord's own contract format (only made if they have none; a saved one is never changed).
+        $landlord = $users['landlord@rsync.test'];
+        ContractTemplate::firstOrCreate(
+            ['user_id' => $landlord->user_id],
+            [
+                'repairs_policy' => 'landlord',
+                'deposit' => 3500,
+                'advance_months' => 1,
+                'utilities_note' => 'Water is included. Electricity is sub-metered and paid monthly.',
+                'terms' => ContractDefaults::TERMS,
+                'house_rules' => array_merge(ContractDefaults::HOUSE_RULES, ['The main door is locked at 11:00 PM. Tell the landlord if you will be late.']),
+            ]
+        );
+
         // tenant2 currently rents it (1 of 2 slots taken).
-        Tenancy::firstOrCreate(
+        $tenancy = Tenancy::firstOrCreate(
             ['user_id' => $users['tenant2@rsync.test']->user_id, 'room_id' => $room->room_id, 'status' => 'Active'],
             ['start_date' => now()->toDateString(), 'end_date' => now()->addMonth()->toDateString()]
         );
+        // A new demo contract gets its copy of the rent and terms, like a real assignment.
+        if ($tenancy->wasRecentlyCreated) {
+            $tenancy->update(['monthly_rent' => (float) $room->price] + ContractTemplate::termsFor($landlord));
+        }
 
         // tenant has applied and is waiting for the landlord.
         RoomApplication::firstOrCreate(

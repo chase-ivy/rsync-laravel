@@ -9,7 +9,7 @@ use Illuminate\View\View;
 
 /**
  * Printable rental agreement for one contract (one row of `tenants`).
- * Built from the data in the app; the browser's "Print / Save as PDF" turns it into a PDF.
+ * Built from the data in the app (the terms are the ones the landlord set, see Tenancy::contractTerms()); the browser's "Print / Save as PDF" turns it into a PDF.
  */
 class ContractController extends Controller
 {
@@ -29,6 +29,7 @@ class ContractController extends Controller
 
         return view('contracts.show', [
             'contract' => $tenancy,
+            'terms' => $tenancy->contractTerms(),   // saved copy, or the landlord's template for older contracts
             'code' => AdminTenantController::code($tenancy->tenant_id),
             'tenant' => $tenancy->user,
             'room' => $tenancy->room,

@@ -13,6 +13,7 @@
     <div class="nav-actions">
         <a href="{{ route('landlord.dashboard') }}">Dashboard</a>
         <a href="{{ route('account') }}">Account</a>
+        <a href="{{ route('landlord.contract') }}">Contract</a>
         <a href="{{ route('landlord.maintenance') }}">Maintenance</a>
         <a href="{{ route('logout') }}">Logout</a>
     </div>
@@ -24,6 +25,8 @@
         <h1>My Tenants</h1>
         <span class="t-count">{{ $tenancies->count() }} current tenant{{ $tenancies->count() === 1 ? '' : 's' }}</span>
     </div>
+
+    @if ($msg)<div class="toast {{ $isErr ? 'err' : '' }}">{{ $msg }}</div>@endif
 
     <div class="tbl-wrap">
     <table>
@@ -75,7 +78,10 @@
                         <span class="t-sub">Not uploaded</span>
                     @endif
                 </td>
-                <td><a href="{{ route('contracts.show', $t->tenant_id) }}" target="_blank" rel="noopener">Contract</a></td>
+                <td>
+                    <a href="{{ route('contracts.show', $t->tenant_id) }}" target="_blank" rel="noopener">Contract</a>
+                    <div class="t-sub"><a href="{{ route('landlord.contracts.edit', $t->tenant_id) }}">Edit contract</a></div>
+                </td>
             </tr>
         @empty
             <tr><td colspan="8" class="t-empty">No current tenants yet. Assign tenants to your rooms from the Dashboard.</td></tr>

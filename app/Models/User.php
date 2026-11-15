@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -223,6 +224,12 @@ class User extends Authenticatable implements MustVerifyEmail
     public function activeTenancy(): ?Tenancy
     {
         return $this->tenancies()->where('status', 'Active')->with('room:room_id,room_name')->first();
+    }
+
+    /** A landlord's own contract format (empty until they save one on the Contract page). */
+    public function contractTemplate(): HasOne
+    {
+        return $this->hasOne(ContractTemplate::class, 'user_id', 'user_id');
     }
 
     public function applications(): HasMany

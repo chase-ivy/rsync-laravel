@@ -111,3 +111,18 @@ footer p{font-size:12px;color:rgba(255,255,255,.3);}
 .field label.amenity-check i{color:var(--amber);font-size:15px;}
 .field label.amenity-check:has(input:checked){border-color:rgba(232,160,32,.5);background:rgba(232,160,32,.08);}
 @media(max-width:640px){.amenity-grid{grid-template-columns:1fr;}}
+
+/* CONTRACT FORMAT / EDIT CONTRACT pages */
+.c-card{background:#fff;border-radius:var(--r);box-shadow:var(--sh);border:1px solid var(--border);padding:22px 24px;max-width:860px;}
+.c-intro{font-size:14px;color:var(--ink3);max-width:620px;line-height:1.5;}
+.c-card h2{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;margin:6px 0 12px;}
+.c-card .field textarea{min-height:190px;line-height:1.5;}
+.c-hint{font-size:12px;color:var(--ink3);margin-top:4px;}
+.f-err{font-size:12px;color:var(--red);margin-top:4px;}
+.field .is-bad{border-color:var(--red);}
+.c-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:18px;}
+.c-check{display:flex;align-items:center;gap:8px;font-size:13px;margin-top:6px;}
+.c-check input{width:auto;}
+.c-summary{display:flex;flex-wrap:wrap;gap:6px 22px;font-size:13px;color:var(--ink2);margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.row3{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+@media(max-width:700px){.row3,.row2{grid-template-columns:1fr;}.c-card{padding:18px;}}
