@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\RoomFilters;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -21,6 +22,7 @@ class LoginController extends Controller
             // reset_success = legacy password-reset message; status = new messages (e.g. after registering).
             'resetMsg' => $request->session()->pull('reset_success') ?? $request->session()->get('status'),
             'loginFailed' => false,
+            'stats' => RoomFilters::stats(),
         ]);
     }
 
@@ -38,6 +40,7 @@ class LoginController extends Controller
             return view('auth.login', [
                 'resetMsg' => $request->session()->pull('reset_success'),
                 'loginFailed' => true,
+                'stats' => RoomFilters::stats(),
             ]);
         }
 

@@ -196,6 +196,23 @@ class RoomFilters
         return $area !== '' && mb_strlen($area) <= 60 ? $area : null;
     }
 
+    /**
+     * The three numbers on the login page: listed rooms with a free slot, the lowest rent one person pays
+     * (whole-room prices split by capacity, like the homepage), and how many barangays have such rooms.
+     *
+     * @return array{rooms: int, lowest: ?float, areas: int}
+     */
+    public static function stats(): array
+    {
+        $rooms = Room::withOpenSlots()->get();
+
+        return [
+            'rooms' => $rooms->count(),
+            'lowest' => $rooms->isEmpty() ? null : (float) $rooms->min(fn (Room $r) => $r->perPersonRent()),
+            'areas' => count(self::areas($rooms)),
+        ];
+    }
+
     /** The areas of the given rooms for the Location select: [area => number of rooms], A–Z. */
     public static function areas(Collection $rooms): array
     {

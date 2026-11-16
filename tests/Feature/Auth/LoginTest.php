@@ -156,4 +156,42 @@ class LoginTest extends TestCase
         $this->get('/login.php')->assertRedirect('/login')->assertStatus(301);
         $this->get('/logout.php')->assertRedirect('/logout')->assertStatus(301);
     }
+
+    public function test_left_side_uses_the_picture_in_public_brand_when_there_is_one(): void
+    {
+        $file = public_path('brand/login.jpg');
+        $had = is_file($file);
+        $backup = $had ? file_get_contents($file) : null;
+
+        try {
+            @unlink($file);
+            $this->get('/login')->assertOk()
+                ->assertDontSee('brand/login.jpg')
+                ->assertDontSee('Access your dashboard')        // the left side is only a picture now
+                ->assertSee('<label for="email">Email</label>', false);
+
+            @mkdir(dirname($file), 0777, true);
+            file_put_contents($file, 'x');
+            $this->get('/login')->assertOk()->assertSee('brand/login.jpg?v=', false);
+        } finally {
+            $had ? file_put_contents($file, $backup) : @unlink($file);
+        }
+    }
+
+    public function test_picture_shows_the_three_live_room_numbers(): void
+    {
+        // No listed rooms: no numbers at all.
+        $this->get('/login')->assertOk()->assertDontSee('class="photo-stats"', false);
+
+        \App\Models\Room::create(['room_name' => 'A', 'price' => 3000, 'description' => 'x', 'status' => 'Available', 'max_occupants' => 2, 'address' => '1 Road, Brgy. Lourdes']);
+        \App\Models\Room::create(['room_name' => 'B', 'price' => 5000, 'description' => 'x', 'status' => 'Available', 'max_occupants' => 4, 'price_type' => 'whole_room', 'address' => '2 Road, Brgy. Aurora Hill']);
+        \App\Models\Room::create(['room_name' => 'C', 'price' => 2500, 'description' => 'x', 'status' => 'Available', 'max_occupants' => 1, 'address' => '3 Road, Brgy. Lourdes']);
+
+        $this->get('/login')->assertOk()
+            ->assertSee('class="photo-stats"', false)
+            ->assertSeeInOrder(['<dt>3</dt>', 'rooms with a free slot right now', '<dt>₱1,250</dt>', 'lowest rent per person', '<dt>2</dt>', 'barangays with rooms'], false);
+
+        // The numbers are also there after a wrong password.
+        $this->post('/login', ['email' => 'nobody@gmail.com', 'password' => 'wrong'])->assertSee('rooms with a free slot right now');
+    }
 }

@@ -3,7 +3,10 @@
     A page fills these sections:
       title     → browser tab text
       page      → login | register | forgot  (picks the page's look in auth.css)
-      hero      → left photo panel text (leave out for a page without the photo)
+      hero      → left photo panel text (leave out for a page without the photo; empty = photo only)
+      photo_only → set to 1 for a left panel with only the picture (no text)
+      photo_extra → optional content on the picture (login: the three room numbers)
+      photo     → optional picture address for the left panel (otherwise auth.css picks one)
       content   → the white card
 --}}
 @yield('before_html')
@@ -18,12 +21,15 @@
 @vite(['resources/css/auth.css', 'resources/js/auth.js'])
 </head>
 <body class="page-@yield('page')">
-@hasSection('hero')
-<div class="left">
+@if ($__env->hasSection('hero') || $__env->hasSection('photo_only'))
+<div class="left" @hasSection('photo') style="background-image:url('@yield('photo')')" @endif>
+    @if (trim($__env->yieldContent('hero')) !== '')
     <div class="left-copy">
         <div class="logo">RS<span>Y</span>NC</div>
         @yield('hero')
     </div>
+    @endif
+    @yield('photo_extra')
 </div>
 <div class="right">
     @yield('content')
