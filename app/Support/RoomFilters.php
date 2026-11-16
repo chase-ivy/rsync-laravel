@@ -175,18 +175,19 @@ class RoomFilters
         }
         if (preg_match('/\b(?:brgy|bgy|barangay)\b\.?\s*([^,]+)/iu', $address, $m)) {
             $area = $m[1];
-        } elseif (str_contains($address, ',')) {
-            // The last part that is not the city, the province or a ZIP code: "21 Kisad Rd, Engineers Hill, Baguio City" => "Engineers Hill".
+        } else {
+            // No "Brgy.": take the last part that is not the city/province/ZIP and not a street.
+            // "21 Kisad Rd, Engineers Hill, Baguio City" => "Engineers Hill"; "Trancoville, Baguio City" => "Trancoville"; "Aurora Hill" => "Aurora Hill".
             $area = '';
-            foreach (array_slice(array_reverse(explode(',', $address)), 0, -1) as $part) {
+            foreach (array_reverse(explode(',', $address)) as $part) {
                 $part = trim(preg_replace('/\b(baguio( city)?|benguet|philippines|ph|\d{4})\b/iu', '', $part), " .,-\t");
-                if ($part !== '') {
+                $isStreet = preg_match('/^#?\d/u', $part)
+                    || preg_match('/\b(st|street|rd|road|ave|avenue|drive|dr|lane|ln|blvd|boulevard|ext|extension|highway|hwy)\.?$/iu', $part);
+                if ($part !== '' && ! $isStreet) {
                     $area = $part;
                     break;
                 }
             }
-        } else {
-            return null;
         }
         $area = trim(preg_replace('/\s+/u', ' ', (string) $area), " .,-\t");
         if ($area === mb_strtolower($area)) {

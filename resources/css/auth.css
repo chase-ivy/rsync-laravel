@@ -66,20 +66,28 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-
 .page-login .field label{font-size:13.5px;font-weight:500;color:var(--ink2);text-transform:none;letter-spacing:0;margin-bottom:7px;}
 .page-login .field input{padding:13px 42px 13px 14px;font-size:15px;}
 .page-login .btn-main{padding:14px;font-size:15px;}
-/* The three numbers: a solid amber band across the bottom of the picture */
-.photo-stats{position:absolute;left:0;right:0;bottom:0;z-index:2;display:grid;grid-template-columns:repeat(3,1fr);margin:0;padding:26px 48px 30px;background:var(--amber);color:var(--ink);}
-.photo-stats div{padding:0 22px;border-left:2px solid var(--ink);}
-.photo-stats div:first-child{padding-left:0;border-left:0;}
-.photo-stats dt{font-family:'Syne',sans-serif;font-size:clamp(26px,2.6vw,40px);font-weight:800;line-height:1.1;}
-.photo-stats dd{margin:6px 0 0;font-size:14px;line-height:1.4;}
+/* On the picture: headline + three numbers written straight onto the photo, no box or band, all in one colour (white).
+   Inter Tight for the headline, numbers, "Sign in" and the logo; DM Sans for the small text.
+   The see-through shade at the bottom keeps white text readable (checked: WCAG 2.2 AA on the photo). */
+.page-login .box-logo{font-family:'Inter Tight','DM Sans',system-ui,sans-serif;font-weight:800;letter-spacing:.16em;}
+.page-login .box h2{font-family:'Inter Tight','DM Sans',system-ui,sans-serif;font-weight:600;letter-spacing:-.02em;font-size:30px;line-height:1.15;}
+.photo-poster{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:220px clamp(32px,4vw,64px) clamp(32px,4.5vh,56px);color:#fff;background:linear-gradient(to top,rgba(8,8,12,.74) 0%,rgba(8,8,12,.62) 40%,rgba(8,8,12,.36) 70%,rgba(8,8,12,.12) 86%,rgba(8,8,12,0) 100%);text-shadow:0 1px 12px rgba(0,0,0,.25);}
+.poster-title{font-family:'Inter Tight','DM Sans',system-ui,sans-serif;font-weight:600;font-size:clamp(38px,3.5vw,64px);line-height:1.02;letter-spacing:-.025em;max-width:7.6em;margin:0 0 clamp(22px,3vh,36px);}
+.poster-title span{color:inherit;}
+.photo-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;margin:0;max-width:660px;}
+.photo-stats dt{font-family:'Inter Tight','DM Sans',system-ui,sans-serif;font-weight:600;font-size:clamp(24px,1.9vw,34px);line-height:1.1;letter-spacing:-.015em;font-variant-numeric:lining-nums tabular-nums;}
+.photo-stats dd{margin:6px 0 0;font-size:14px;font-weight:500;line-height:1.45;color:inherit;text-wrap:balance;}
 @media(max-width:860px){
     .page-login .right{padding:32px 20px;}.page-login .box{padding:32px 24px;}
     /* Phones: no picture, so the numbers sit under the form */
     .page-login{flex-direction:column;}
     .page-login .left{display:block;flex:none;order:2;background-image:none !important;min-height:0;}
-    .page-login .photo-stats{position:static;padding:22px 20px 26px;}
+    /* Phones: no picture, so the headline and numbers sit under the form in dark letters */
+    .page-login .photo-poster{position:static;padding:8px 24px 40px;background:none;color:var(--ink);text-shadow:none;}
+    .page-login .poster-title{font-size:32px;margin-bottom:20px;}
+    .page-login .photo-stats{gap:16px;}
     .page-login .photo-stats dt{font-size:24px;}
-    .page-login .photo-stats dd{font-size:13px;}
+    .page-login .photo-stats dd{font-size:14px;}
 }
 .page-login .left{background-image:url('https://images.unsplash.com/photo-1505691938895-1758d7feb511');}
 

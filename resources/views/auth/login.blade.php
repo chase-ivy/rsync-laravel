@@ -26,16 +26,21 @@
 @endif
 @section('photo_only', '1')
 
-{{-- Three live numbers on the picture (same rules as the homepage). --}}
-@if (($stats['rooms'] ?? 0) > 0)
+{{-- On the picture: a big headline and three live numbers (same rules as the homepage). --}}
 @section('photo_extra')
-    <dl class="photo-stats" aria-label="Rooms on RSYNC right now">
-        <div><dt>{{ $stats['rooms'] }}</dt><dd>{{ $stats['rooms'] === 1 ? 'room' : 'rooms' }} with a free slot right now</dd></div>
-        <div><dt>₱{{ number_format($stats['lowest'], 0) }}</dt><dd>lowest rent per person, per month</dd></div>
-        <div><dt>{{ $stats['areas'] }}</dt><dd>{{ $stats['areas'] === 1 ? 'barangay' : 'barangays' }} with rooms</dd></div>
-    </dl>
+    <div class="photo-poster">
+        <h2 class="poster-title">Back up the hill, back <span>home.</span></h2>
+        @if (($stats['rooms'] ?? 0) > 0)
+        <dl class="photo-stats" aria-label="Rooms on RSYNC right now">
+            <div><dt>{{ $stats['rooms'] }}</dt><dd>{{ $stats['rooms'] === 1 ? 'room' : 'rooms' }} with a free slot right now</dd></div>
+            <div><dt>₱{{ number_format($stats['lowest'], 0) }}</dt><dd>lowest rent per person a month</dd></div>
+            @if ($stats['areas'] > 0)
+            <div><dt>{{ $stats['areas'] }}</dt><dd>{{ $stats['areas'] === 1 ? 'barangay' : 'barangays' }} around Baguio</dd></div>
+            @endif
+        </dl>
+        @endif
+    </div>
 @endsection
-@endif
 
 @section('content')
 <form method="POST" action="{{ route('login.attempt') }}" class="box">

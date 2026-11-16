@@ -181,7 +181,7 @@ class LoginTest extends TestCase
     public function test_picture_shows_the_three_live_room_numbers(): void
     {
         // No listed rooms: no numbers at all.
-        $this->get('/login')->assertOk()->assertDontSee('class="photo-stats"', false);
+        $this->get('/login')->assertOk()->assertDontSee('class="photo-stats"', false)->assertSee('Back up the hill');
 
         \App\Models\Room::create(['room_name' => 'A', 'price' => 3000, 'description' => 'x', 'status' => 'Available', 'max_occupants' => 2, 'address' => '1 Road, Brgy. Lourdes']);
         \App\Models\Room::create(['room_name' => 'B', 'price' => 5000, 'description' => 'x', 'status' => 'Available', 'max_occupants' => 4, 'price_type' => 'whole_room', 'address' => '2 Road, Brgy. Aurora Hill']);
@@ -189,7 +189,7 @@ class LoginTest extends TestCase
 
         $this->get('/login')->assertOk()
             ->assertSee('class="photo-stats"', false)
-            ->assertSeeInOrder(['<dt>3</dt>', 'rooms with a free slot right now', '<dt>₱1,250</dt>', 'lowest rent per person', '<dt>2</dt>', 'barangays with rooms'], false);
+            ->assertSeeInOrder(['<dt>3</dt>', 'rooms with a free slot right now', '<dt>₱1,250</dt>', 'lowest rent per person', '<dt>2</dt>', 'barangays around Baguio'], false);
 
         // The numbers are also there after a wrong password.
         $this->post('/login', ['email' => 'nobody@gmail.com', 'password' => 'wrong'])->assertSee('rooms with a free slot right now');

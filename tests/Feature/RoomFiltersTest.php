@@ -49,6 +49,8 @@ class RoomFiltersTest extends TestCase
         $this->assertSame('Aurora Hill', RoomFilters::areaOf('7 Aurora Hill Rd, Barangay Aurora Hill, Baguio City'));
         $this->assertSame('Engineers Hill', RoomFilters::areaOf('21 Kisad Rd, Engineers Hill, Baguio City'));
         $this->assertNull(RoomFilters::areaOf('Bonifacio St'));
+        $this->assertSame('Trancoville', RoomFilters::areaOf('Trancoville, Baguio City'));   // no "Brgy." and no street
+        $this->assertSame('Aurora Hill', RoomFilters::areaOf('Aurora Hill'));
         $this->assertNull(RoomFilters::areaOf(null));
     }
 

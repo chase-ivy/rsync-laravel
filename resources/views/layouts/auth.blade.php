@@ -16,7 +16,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>@yield('title') · RSYNC</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&family=Inter+Tight:wght@600;800&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/boxicons@latest/css/boxicons.min.css" rel="stylesheet">
 @vite(['resources/css/auth.css', 'resources/js/auth.js'])
 </head>
